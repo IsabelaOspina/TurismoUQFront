@@ -1,1 +1,75 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --verde-900: #1f5a3f;
+  --verde-oscuro: #1e5b3c;
+  --verde-800: #36a068;
+  --verde-600: #4dbb80;
+  --verde-400: #8fd9ab;
+  --verde-100: #e6f7ec;
+  --verde-50: #f2fbf5;
+  --cafe-700: #8a5a2b;
+  --cafe-500: #c08a4a;
+  --sol: #ffd166;
+  --crema: #f6fbf7;
+  --papel: #ffffff;
+  --tinta: #22342a;
+  --tinta-suave: #62776b;
+  --borde: #dcefe2;
+  --rojo: #d2553c;
+  --sombra: 0 10px 30px rgba(54, 160, 104, 0.10);
+  --radio: 14px;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; height: 100%; }
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--tinta);
+  background: var(--crema);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { font-family: 'Fraunces', Georgia, serif; margin: 0; }
+
+button, input { font: inherit; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+}
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-primario { background: var(--verde-oscuro); color: #fff; }
+.btn-primario:hover:not(:disabled) { background: var(--verde-800); }
+.btn-suave { background: var(--verde-100); color: var(--verde-800); }
+.btn-suave:hover:not(:disabled) { background: #d4f0de; }
+
+.campo {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--borde);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--tinta);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.campo:focus { border-color: var(--verde-600); box-shadow: 0 0 0 4px rgba(54, 160, 104, 0.15); }
+
+.spinner {
+  width: 18px; height: 18px;
+  border: 2.5px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: girar 0.7s linear infinite;
+}
+@keyframes girar { to { transform: rotate(360deg); } }

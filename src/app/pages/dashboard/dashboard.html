@@ -1,0 +1,146 @@
+<div class="layout" [class.menu-abierto]="menuAbierto()">
+  <aside class="lateral">
+    <div class="marca">
+      <span class="logo">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 48 L26 26 L34 36 L42 24 L54 48 Z" fill="currentColor"/><circle cx="46" cy="16" r="5" fill="#f2b84b"/></svg>
+      </span>
+      TurismoUQ
+    </div>
+
+    <p class="etiqueta">Consultas</p>
+    <nav>
+      @for (r of reportes; track r.id) {
+        <button class="item" [class.activo]="r.id === seleccionado().id" (click)="seleccionar(r)">
+          <span class="num">{{ r.numero }}</span>
+          <span class="nombre">{{ r.titulo }}</span>
+        </button>
+      }
+    </nav>
+
+    <div class="usuario">
+      <div class="avatar">{{ (usuario()?.nombre ?? '?').charAt(0) }}</div>
+      <div class="datos">
+        <strong>{{ usuario()?.nombre }}</strong>
+        <small>{{ usuario()?.correo }}</small>
+      </div>
+      <button class="salir" (click)="cerrarSesion()" title="Cerrar sesión" aria-label="Cerrar sesión">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <div class="velo" (click)="menuAbierto.set(false)"></div>
+
+  <main class="contenido">
+    <header class="barra">
+      <button class="hamburguesa" (click)="menuAbierto.set(true)" aria-label="Abrir menú">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div>
+        <p class="saludo">Hola, {{ usuario()?.nombre }} 👋</p>
+        <p class="fecha">Reportes de reservas y alojamientos del Quindío</p>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="cabecera">
+        <div>
+          <div class="chips">
+            <span class="chip">Consulta {{ seleccionado().numero }}</span>
+          </div>
+          <h1>{{ seleccionado().titulo }}</h1>
+          <p class="descripcion">{{ seleccionado().descripcion }}</p>
+        </div>
+        <div class="contador">
+          <strong>{{ filas().length }}</strong>
+          <span>{{ filas().length === 1 ? 'registro' : 'registros' }}</span>
+        </div>
+      </div>
+
+      <div class="controles">
+        @if (seleccionado().conFechas) {
+          <label class="fecha-campo">
+            <span>Desde</span>
+            <input class="campo" type="date" [(ngModel)]="fechaInicio" />
+          </label>
+          <label class="fecha-campo">
+            <span>Hasta</span>
+            <input class="campo" type="date" [(ngModel)]="fechaFin" />
+          </label>
+          <button class="btn btn-primario" (click)="cargar()" [disabled]="cargando()">Consultar</button>
+        }
+
+
+        @if (seleccionado().refrescable) {
+          <button class="btn btn-suave" (click)="refrescarVista()" [disabled]="cargando()">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Refrescar vista
+          </button>
+        }
+        <button class="btn btn-suave" (click)="cargar(true)" [disabled]="cargando()" title="Volver a consultar">
+          Recargar
+        </button>
+      </div>
+
+      @if (aviso()) { <div class="mensaje ok">{{ aviso() }}</div> }
+      @if (error()) { <div class="mensaje mal" role="alert">{{ error() }}</div> }
+
+      <div class="tabla-envoltura">
+        @if (cargando()) {
+          <div class="estado-vacio"><span class="spinner"></span> Consultando la base de datos…</div>
+        } @else if (!error() && filas().length === 0) {
+          <div class="estado-vacio">
+            <svg viewBox="0 0 64 40" width="80" aria-hidden="true"><path d="M2 38 L20 14 L30 26 L40 10 L62 38 Z" fill="#d6f5e1"/></svg>
+            No hay resultados para mostrar.
+          </div>
+        } @else if (!error()) {
+          <table>
+            <thead>
+              <tr>
+                @for (col of seleccionado().columnas; track col.campo) {
+                  <th [class.der]="esNumerica(col)">{{ col.titulo }}</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (fila of visibles(); track $index) {
+                <tr [class.total]="esTotal(fila)">
+                  @for (col of seleccionado().columnas; track col.campo) {
+                    <td [class.der]="esNumerica(col)" [class]="signo(fila, col)">
+                      @switch (col.tipo) {
+                        @case ('ranking') {
+                          <span class="medalla" [attr.data-puesto]="fila[col.campo]">{{ fila[col.campo] }}</span>
+                        }
+                        @case ('estado') {
+                          <span class="pildora" [attr.data-estado]="fila[col.campo]">{{ formato(fila, col) }}</span>
+                        }
+                        @default {
+                          @if (col.campo === 'calificacionPromedio') {
+                            <span class="estrellas">
+                              @for (e of [1, 2, 3, 4, 5]; track e) {
+                                <span [class.llena]="e <= estrellas(fila)">★</span>
+                              }
+                            </span>
+                          }
+                          {{ formato(fila, col) }}
+                        }
+                      }
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+
+      @if (!cargando() && totalPaginas() > 1) {
+        <div class="paginacion">
+          <button class="btn btn-suave" (click)="irA(pagina() - 1)" [disabled]="pagina() === 1">Anterior</button>
+          <span>Página {{ pagina() }} de {{ totalPaginas() }}</span>
+          <button class="btn btn-suave" (click)="irA(pagina() + 1)" [disabled]="pagina() === totalPaginas()">Siguiente</button>
+        </div>
+      }
+    </section>
+  </main>
+</div>

@@ -1,0 +1,62 @@
+<main class="pantalla">
+  <section class="portada">
+    <div class="marca">
+      <span class="logo">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 48 L26 26 L34 36 L42 24 L54 48 Z" fill="currentColor"/><circle cx="46" cy="16" r="5" fill="#f2b84b"/></svg>
+      </span>
+      TurismoUQ
+    </div>
+
+    <div class="texto-portada">
+      <h1>Descubre cómo se mueve el turismo en el Quindío</h1>
+      <p>Ocupación, ingresos y calificaciones de los alojamientos de la región, en un solo lugar.</p>
+    </div>
+
+    <!-- Montañas y palmas de cera -->
+    <svg class="paisaje" viewBox="0 0 800 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <path d="M0 190 C120 120 220 150 320 110 C430 70 520 140 640 100 C710 80 760 95 800 110 L800 300 L0 300 Z" fill="#a8e2bf" opacity="0.9"/>
+      <path d="M0 230 C140 180 250 215 380 175 C500 140 620 205 800 170 L800 300 L0 300 Z" fill="#6cc894"/>
+      <g fill="#3a9a68">
+        <rect x="140" y="120" width="5" height="110" rx="2"/>
+        <path d="M142 122 c-22 -6 -34 4 -40 12 c14 -8 28 -8 40 -6 z M142 122 c22 -6 34 4 40 12 c-14 -8 -28 -8 -40 -6 z M142 120 c-8 -18 -2 -30 6 -34 c-4 12 -4 22 -3 32 z M142 120 c-18 -12 -30 -8 -36 -2 c12 -2 24 0 36 6 z M142 120 c18 -12 30 -8 36 -2 c-12 -2 -24 0 -36 6 z"/>
+        <rect x="610" y="95" width="5" height="120" rx="2"/>
+        <path d="M612 97 c-22 -6 -34 4 -40 12 c14 -8 28 -8 40 -6 z M612 97 c22 -6 34 4 40 12 c-14 -8 -28 -8 -40 -6 z M612 95 c-8 -18 -2 -30 6 -34 c-4 12 -4 22 -3 32 z M612 95 c-18 -12 -30 -8 -36 -2 c12 -2 24 0 36 6 z M612 95 c18 -12 30 -8 36 -2 c-12 -2 -24 0 -36 6 z"/>
+        <rect x="680" y="130" width="4" height="80" rx="2"/>
+        <path d="M682 132 c-16 -5 -26 3 -30 9 c10 -6 20 -6 30 -4 z M682 132 c16 -5 26 3 30 9 c-10 -6 -20 -6 -30 -4 z M682 130 c-6 -13 -1 -22 4 -25 c-3 9 -3 16 -2 24 z"/>
+      </g>
+    </svg>
+  </section>
+
+  <section class="formulario">
+    <form (ngSubmit)="ingresar()" class="tarjeta">
+      <h2>Bienvenido</h2>
+      <p class="sub">Inicia sesión para ver las consultas</p>
+
+      <label>
+        <span>Correo</span>
+        <input class="campo" type="email" name="correo" [(ngModel)]="correo"
+               placeholder="usuario@turismouq.com" autocomplete="username" />
+      </label>
+
+      <label>
+        <span>Contraseña</span>
+        <div class="con-boton">
+          <input class="campo" [type]="verContrasena() ? 'text' : 'password'" name="contrasena"
+                 [(ngModel)]="contrasena" placeholder="••••••••" autocomplete="current-password" />
+          <button type="button" class="ojo" (click)="verContrasena.set(!verContrasena())"
+                  [attr.aria-label]="verContrasena() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+            {{ verContrasena() ? 'Ocultar' : 'Ver' }}
+          </button>
+        </div>
+      </label>
+
+      @if (error()) {
+        <div class="error" role="alert">{{ error() }}</div>
+      }
+
+      <button class="btn btn-primario entrar" type="submit" [disabled]="cargando()">
+        @if (cargando()) { <span class="spinner"></span> Ingresando… } @else { Ingresar }
+      </button>
+    </form>
+  </section>
+</main>

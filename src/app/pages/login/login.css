@@ -1,0 +1,116 @@
+.pantalla {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+}
+
+.portada {
+  position: relative;
+  overflow: hidden;
+  padding: 40px 48px;
+  color: #fff;
+  background: linear-gradient(170deg, #fff4cc 0%, #d6f5e1 45%, #8fd9ab 100%);
+  display: flex;
+  flex-direction: column;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--verde-900);
+  position: relative;
+  z-index: 1;
+}
+.logo {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  background: var(--verde-oscuro);
+  color: #e6f7ec;
+  display: grid;
+  place-items: center;
+}
+.logo svg { width: 28px; height: 28px; }
+
+.texto-portada {
+  position: relative;
+  z-index: 1;
+  margin-top: 12vh;
+  max-width: 460px;
+}
+.texto-portada h1 {
+  font-size: clamp(30px, 3.4vw, 46px);
+  line-height: 1.1;
+  color: var(--verde-900);
+}
+.texto-portada p {
+  margin-top: 16px;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--verde-900);
+  opacity: 0.8;
+}
+
+.paisaje {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  width: 100%;
+  height: 55%;
+}
+
+.formulario {
+  display: grid;
+  place-items: center;
+  padding: 32px 16px;
+}
+
+.tarjeta {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.tarjeta h2 { font-size: 32px; color: var(--verde-900); }
+.sub { margin: -12px 0 8px; color: var(--tinta-suave); }
+
+label { display: flex; flex-direction: column; gap: 6px; }
+label > span { font-size: 14px; font-weight: 600; color: var(--tinta); }
+
+.con-boton { position: relative; }
+.con-boton .campo { padding-right: 76px; }
+.ojo {
+  position: absolute;
+  right: 6px; top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--verde-600);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+.ojo:hover { background: var(--verde-100); }
+
+.error {
+  background: #fbeae6;
+  color: var(--rojo);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.entrar { padding: 13px; font-size: 16px; margin-top: 4px; }
+
+@media (max-width: 860px) {
+  .pantalla { grid-template-columns: 1fr; }
+  .portada { min-height: 300px; padding: 24px 16px; }
+  .texto-portada { margin-top: 24px; }
+  .texto-portada h1 { font-size: 28px; }
+  .paisaje { height: 45%; }
+}

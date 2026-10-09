@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../core/auth.service';
 import { Columna, REPORTES, Reporte, ReportesService } from '../../core/reportes';
@@ -14,7 +14,7 @@ const numero = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 2 });
 
 @Component({
   selector: 'app-dashboard',
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink, RouterLinkActive],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
@@ -137,8 +137,11 @@ export class Dashboard {
         const n = Number(valor);
         return `${n > 0 ? '+' : ''}${numero.format(n)} %`;
       }
-      case 'fecha':
-        return new Date(valor as string).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+      case 'fecha': {
+        // Solo la parte AAAA-MM-DD leída como hora local; si no, el desfase con UTC muestra el día anterior
+        const dia = String(valor).slice(0, 10);
+        return new Date(`${dia}T00:00:00`).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+      }
       default:
         return String(valor);
     }

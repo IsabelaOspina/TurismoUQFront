@@ -38,7 +38,7 @@ export class Login {
         this.cargando.set(false);
         this.error.set(
           err.status === 0
-            ? 'No se pudo conectar con el servidor. ¿Está corriendo el backend?'
+            ? 'No se pudo conectar con el servidor.'
             : 'Correo o contraseña incorrectos, o el usuario está inactivo.'
         );
       },

@@ -1,0 +1,107 @@
+<section class="pagina">
+  <header class="encabezado">
+    <h1>Liquidación mensual</h1>
+    <p class="descripcion">Facturado, pagado y saldo pendiente de cada alojamiento en el mes que elijas.</p>
+  </header>
+
+  <div class="controles">
+    <label>
+      <span>Año</span>
+      <select class="campo" [(ngModel)]="anio">
+        @for (a of anios; track a) { <option [ngValue]="a">{{ a }}</option> }
+      </select>
+    </label>
+    <label>
+      <span>Mes</span>
+      <select class="campo" [(ngModel)]="mes">
+        @for (m of meses; track m.numero) { <option [ngValue]="m.numero">{{ m.nombre }}</option> }
+      </select>
+    </label>
+    <button class="btn btn-primario" (click)="generar()" [disabled]="cargando() !== ''">
+      @if (cargando() === 'generar') { <span class="spinner"></span> }
+      Generar liquidación
+    </button>
+    <button class="btn btn-suave" (click)="consultar()" [disabled]="cargando() !== ''">
+      @if (cargando() === 'consultar') { <span class="spinner"></span> }
+      Ver última generada
+    </button>
+  </div>
+
+  @if (error(); as e) {
+    <div class="mensaje mal" role="alert">
+      <strong>{{ e.titulo }}.</strong> {{ e.mensaje }}
+      @if (e.codigo) { <small>Código {{ e.codigo }}</small> }
+    </div>
+  }
+
+  @if (periodo(); as p) {
+    @if (p.generada) {
+      <div class="mensaje ok" role="status">Liquidación de {{ p.texto }} generada para {{ filas().length }} alojamientos.</div>
+    }
+
+    @if (filas().length > 0) {
+      <div class="cifras">
+        <div>
+          <span>Reservas</span>
+          <strong>{{ cantidad(totales().reservas) }}</strong>
+        </div>
+        <div>
+          <span>Facturado</span>
+          <strong>{{ moneda(totales().ingresos) }}</strong>
+        </div>
+        <div>
+          <span>Pagado</span>
+          <strong>{{ moneda(totales().pagado) }}</strong>
+        </div>
+        <div class="saldo">
+          <span>Saldo pendiente</span>
+          <strong>{{ moneda(totales().saldo) }}</strong>
+        </div>
+      </div>
+
+      <div class="tabla-envoltura">
+        <table>
+          <caption class="oculto">Liquidación de {{ p.texto }} por alojamiento</caption>
+          <thead>
+          <tr>
+            <th scope="col">Alojamiento</th>
+            <th scope="col">Municipio</th>
+            <th scope="col" class="der">Reservas</th>
+            <th scope="col" class="der">Facturado</th>
+            <th scope="col" class="der">Pagado</th>
+            <th scope="col" class="der">Saldo</th>
+            <th scope="col">Recaudo</th>
+          </tr>
+          </thead>
+          <tbody>
+            @for (f of filas(); track f.alojamiento + f.municipio) {
+              <tr>
+                <td class="fuerte">{{ f.alojamiento }}</td>
+                <td>{{ f.municipio }}</td>
+                <td class="der">{{ cantidad(f.totalReservas) }}</td>
+                <td class="der">{{ moneda(f.ingresos) }}</td>
+                <td class="der">{{ moneda(f.pagado) }}</td>
+                <td class="der" [class.pendiente]="f.saldoPendiente > 0">{{ moneda(f.saldoPendiente) }}</td>
+                <td>
+                  <div class="recaudo">
+                    <div class="barra" role="img" [attr.aria-label]="porcentajePagado(f) + '% pagado'">
+                      <div class="relleno" [style.width.%]="porcentajePagado(f)"></div>
+                    </div>
+                    <small>{{ porcentajePagado(f) }} %</small>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <div class="estado-vacio">
+        No hay liquidación de {{ p.texto }}.
+        @if (!p.generada) { Genérala para calcularla con las reservas del mes. }
+      </div>
+    }
+  } @else if (!error()) {
+    <div class="estado-vacio">Elige el año y el mes, y genera la liquidación.</div>
+  }
+</section>

@@ -73,3 +73,15 @@ button, input { font: inherit; }
   animation: girar 0.7s linear infinite;
 }
 @keyframes girar { to { transform: rotate(360deg); } }
+
+:root {
+  --cafetal: var(--verde-oscuro);
+  --cafetal-claro: var(--verde-900);
+  --hoja: var(--verde-600);
+  --lienzo: var(--crema);
+  --linea: var(--borde);
+  --texto: var(--tinta);
+  --texto-suave: var(--tinta-suave);
+  --cereza: var(--rojo);
+  --miel: var(--sol);
+}

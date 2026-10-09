@@ -1,0 +1,100 @@
+<section class="pagina">
+  <header class="encabezado">
+    <h1>Nueva reserva</h1>
+    <p class="descripcion">Elige la habitación y las fechas para ver el precio de la estadía y confirmar la reserva.</p>
+  </header>
+
+  <div class="rejilla">
+    <form class="tarjeta formulario" (ngSubmit)="confirmar()">
+      <fieldset>
+        <legend>Huésped y habitación</legend>
+        <div class="fila-2">
+          <label>
+            <span>Cliente (ID)</span>
+            <input class="campo" type="number" min="1" name="idCliente" [(ngModel)]="datos.idCliente" (ngModelChange)="cambio()" />
+          </label>
+          <label>
+            <span>Habitación (ID)</span>
+            <input class="campo" type="number" min="1" name="idHabitacion" [(ngModel)]="datos.idHabitacion" (ngModelChange)="cambio()" />
+          </label>
+        </div>
+        <label class="corto">
+          <span>Número de personas</span>
+          <input class="campo" type="number" min="1" name="numeroPersonas" [(ngModel)]="datos.numeroPersonas" (ngModelChange)="cambio()" />
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Fechas de la estadía</legend>
+        <div class="fila-2">
+          <label>
+            <span>Entrada</span>
+            <input class="campo" type="date" name="fechaIn" [(ngModel)]="datos.fechaIn" (ngModelChange)="cambio()" />
+          </label>
+          <label>
+            <span>Salida</span>
+            <input class="campo" type="date" name="fechaOut" [(ngModel)]="datos.fechaOut" (ngModelChange)="cambio()" />
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="acciones">
+        <button type="button" class="btn btn-suave" (click)="calcularPrecio()" [disabled]="procesando() !== ''">
+          @if (procesando() === 'precio') { <span class="spinner"></span> }
+          Calcular precio
+        </button>
+        <button type="submit" class="btn btn-primario" [disabled]="procesando() !== '' || creada() !== null">
+          @if (procesando() === 'confirmar') { <span class="spinner"></span> }
+          Confirmar reserva
+        </button>
+      </div>
+    </form>
+
+    <aside class="tarjeta resumen" aria-live="polite">
+      @if (creada(); as c) {
+        <div class="confirmada">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>
+          <h2>Reserva N.º {{ c.idReserva }} confirmada</h2>
+          <p>Habitación {{ datos.idHabitacion }} · {{ datos.numeroPersonas }} {{ datos.numeroPersonas === 1 ? 'persona' : 'personas' }}</p>
+        </div>
+      } @else {
+        <h2>Resumen</h2>
+      }
+
+      <dl>
+        <div>
+          <dt>Entrada</dt>
+          <dd>{{ fechaLarga(datos.fechaIn) }}</dd>
+        </div>
+        <div>
+          <dt>Salida</dt>
+          <dd>{{ fechaLarga(datos.fechaOut) }}</dd>
+        </div>
+        <div>
+          <dt>Noches</dt>
+          <dd>{{ noches() > 0 ? noches() : '—' }}</dd>
+        </div>
+      </dl>
+
+      <div class="total">
+        <span>Total de la estadía</span>
+        @if (precio() !== null) {
+          <strong>{{ moneda(precio()!) }}</strong>
+        } @else {
+          <strong class="pendiente">—</strong>
+        }
+      </div>
+      @if (precio() === null && !creada()) {
+        <p class="nota">El precio aplica la tarifa de cada temporada que cruza la estadía.</p>
+      }
+
+      @if (error(); as e) {
+        <div class="error" role="alert">
+          <strong>{{ e.titulo }}</strong>
+          <p>{{ e.mensaje }}</p>
+          @if (e.codigo) { <small>Código {{ e.codigo }}</small> }
+        </div>
+      }
+    </aside>
+  </div>
+</section>

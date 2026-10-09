@@ -1,0 +1,137 @@
+.pagina {
+  background: var(--papel);
+  border-radius: 20px;
+  box-shadow: var(--sombra);
+  padding: 28px;
+  border: 1px solid var(--borde);
+}
+
+.encabezado h1 { font-size: 28px; color: var(--verde-900); line-height: 1.2; }
+.descripcion { margin: 6px 0 0; color: var(--tinta-suave); max-width: 64ch; line-height: 1.5; }
+
+.rejilla {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.9fr);
+  gap: 20px;
+  align-items: start;
+  margin-top: 22px;
+}
+
+.tarjeta {
+  background: #fff;
+  border: 1.5px solid var(--borde);
+  border-radius: var(--radio);
+}
+
+/* ---------- Formulario ---------- */
+.formulario { display: flex; flex-direction: column; }
+fieldset {
+  margin: 0;
+  padding: 20px 22px;
+  border: none;
+  border-bottom: 1px solid var(--linea);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+legend {
+  float: left;
+  width: 100%;
+  padding: 0;
+  margin-bottom: 14px;
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--verde-900);
+}
+legend + * { clear: both; }
+.fila-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 500; color: var(--texto-suave); }
+label.corto { max-width: calc(50% - 7px); }
+.campo { padding: 9px 12px; font-size: 14px; }
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 16px 22px;
+}
+.acciones .btn { font-size: 14px; }
+.acciones .spinner { width: 14px; height: 14px; }
+
+/* ---------- Resumen ---------- */
+.resumen { padding: 20px 22px; background: var(--verde-50); }
+.resumen h2 { font-size: 19px; color: var(--verde-900); }
+
+dl { margin: 14px 0 0; display: flex; flex-direction: column; }
+dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid #eef1ef;
+  font-size: 14px;
+}
+dt { color: var(--texto-suave); }
+dd { margin: 0; font-weight: 500; text-align: right; }
+dd::first-letter { text-transform: uppercase; }
+
+.total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 16px 0 4px;
+}
+.total span { font-size: 14px; font-weight: 600; }
+.total strong {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--verde-900);
+  font-variant-numeric: tabular-nums;
+}
+.total strong.pendiente { color: #b4bfb9; }
+.nota { margin: 4px 0 0; font-size: 13px; color: var(--texto-suave); line-height: 1.45; }
+
+.confirmada {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 6px;
+}
+.confirmada svg {
+  width: 30px; height: 30px;
+  margin-bottom: 6px;
+  fill: none;
+  stroke: var(--hoja);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.confirmada h2 { font-size: 21px; }
+.confirmada p { margin: 0; font-size: 14px; color: var(--texto-suave); }
+
+.error {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #fbebe7;
+  border-left: 3px solid var(--cereza);
+}
+.error strong { display: block; font-size: 14px; color: var(--cereza); }
+.error p { margin: 4px 0 0; font-size: 14px; color: #6f2a1d; line-height: 1.45; }
+.error small { display: block; margin-top: 6px; font-size: 12px; color: #9a5a4c; }
+
+@media (max-width: 900px) {
+  .pagina { padding: 18px; }
+  .encabezado h1 { font-size: 22px; }
+  .rejilla { grid-template-columns: 1fr; }
+  .resumen { position: static; }
+}
+@media (max-width: 480px) {
+  .fila-2 { grid-template-columns: 1fr; }
+  label.corto { max-width: none; }
+  fieldset, .acciones, .resumen { padding-left: 16px; padding-right: 16px; }
+}

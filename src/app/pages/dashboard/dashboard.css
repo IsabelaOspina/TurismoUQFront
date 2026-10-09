@@ -37,6 +37,30 @@
 }
 .logo svg { width: 26px; height: 26px; }
 
+/* Selector de área: Consultas | Gestión */
+.areas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin: -8px 0 20px;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(54, 160, 104, 0.14);
+}
+.areas a {
+  padding: 8px 6px;
+  border-radius: 9px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--verde-900);
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.areas a:hover { background: rgba(255, 255, 255, 0.6); }
+.areas a.activa { background: #fff; box-shadow: 0 2px 8px rgba(54, 160, 104, 0.18); }
+.areas a:focus-visible { outline: 2px solid var(--verde-600); outline-offset: 2px; }
+
 .etiqueta {
   margin: 0 8px 8px;
   font-size: 11px;

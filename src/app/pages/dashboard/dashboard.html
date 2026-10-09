@@ -7,6 +7,11 @@
       TurismoUQ
     </div>
 
+    <div class="areas" role="navigation" aria-label="Áreas">
+      <a routerLink="/consultas" routerLinkActive="activa">Consultas</a>
+      <a routerLink="/gestion" routerLinkActive="activa">Gestión</a>
+    </div>
+
     <p class="etiqueta">Consultas</p>
     <nav>
       @for (r of reportes; track r.id) {
@@ -96,11 +101,11 @@
         } @else if (!error()) {
           <table>
             <thead>
-              <tr>
-                @for (col of seleccionado().columnas; track col.campo) {
-                  <th [class.der]="esNumerica(col)">{{ col.titulo }}</th>
-                }
-              </tr>
+            <tr>
+              @for (col of seleccionado().columnas; track col.campo) {
+                <th [class.der]="esNumerica(col)">{{ col.titulo }}</th>
+              }
+            </tr>
             </thead>
             <tbody>
               @for (fila of visibles(); track $index) {

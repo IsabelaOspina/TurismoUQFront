@@ -1,0 +1,62 @@
+<div class="layout" [class.menu-abierto]="menuAbierto()">
+  <aside class="lateral">
+    <div class="marca">
+      <span class="logo">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 48 L26 26 L34 36 L42 24 L54 48 Z" fill="currentColor"/><circle cx="46" cy="16" r="5" fill="#f2b84b"/></svg>
+      </span>
+      TurismoUQ
+    </div>
+
+    <div class="areas" role="navigation" aria-label="Áreas">
+      <a routerLink="/consultas" routerLinkActive="activa">Consultas</a>
+      <a routerLink="/gestion" routerLinkActive="activa">Gestión</a>
+    </div>
+
+    <p class="etiqueta">Gestión de reservas</p>
+    <nav>
+      @for (o of opciones; track o.id) {
+        <button class="item" [class.activo]="vista() === o.id" (click)="abrir(o.id)">
+          <span class="num" aria-hidden="true">
+            @if (o.id === 'reserva') {
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            } @else {
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>
+            }
+          </span>
+          <span class="nombre">{{ o.titulo }}</span>
+        </button>
+      }
+    </nav>
+
+    <div class="usuario">
+      <div class="avatar">{{ (usuario()?.nombre ?? '?').charAt(0) }}</div>
+      <div class="datos">
+        <strong>{{ usuario()?.nombre }}</strong>
+        <small>{{ usuario()?.correo }}</small>
+      </div>
+      <button class="salir" (click)="cerrarSesion()" title="Cerrar sesión" aria-label="Cerrar sesión">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <div class="velo" (click)="menuAbierto.set(false)"></div>
+
+  <main class="contenido">
+    <header class="barra">
+      <button class="hamburguesa" (click)="menuAbierto.set(true)" aria-label="Abrir menú">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div>
+        <p class="saludo">Gestión de reservas</p>
+        <p class="fecha">Reservas y liquidaciones de los alojamientos del Quindío</p>
+      </div>
+    </header>
+
+    @if (vista() === 'reserva') {
+      <app-reserva />
+    } @else {
+      <app-liquidacion />
+    }
+  </main>
+</div>

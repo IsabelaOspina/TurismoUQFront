@@ -93,6 +93,12 @@ dd::first-letter { text-transform: uppercase; }
   font-variant-numeric: tabular-nums;
 }
 .total strong.pendiente { color: #b4bfb9; }
+.buscar { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
+.buscar label { flex: 0 1 calc(50% - 7px); min-width: 160px; }
+.buscar .btn { font-size: 14px; padding: 9px 16px; }
+.buscar .spinner { width: 14px; height: 14px; }
+.cargada { margin: 0; font-size: 13px; color: var(--verde-800); }
+.modificar { width: 100%; margin-top: 16px; font-size: 14px; }
 .nota { margin: 4px 0 0; font-size: 13px; color: var(--texto-suave); line-height: 1.45; }
 
 .confirmada {

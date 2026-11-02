@@ -1,11 +1,38 @@
 <section class="pagina">
   <header class="encabezado">
-    <h1>Nueva reserva</h1>
-    <p class="descripcion">Elige la habitación y las fechas para ver el precio de la estadía y confirmar la reserva.</p>
+    @if (esEdicion()) {
+      <h1>Editar reserva</h1>
+      <p class="descripcion">Escribe el número de la reserva y pulsa Buscar para cargar sus datos. Cambia lo que necesites; el precio se recalcula con las fechas nuevas.</p>
+    } @else {
+      <h1>Nueva reserva</h1>
+      <p class="descripcion">Elige la habitación y las fechas para ver el precio de la estadía y confirmar la reserva.</p>
+    }
   </header>
 
   <div class="rejilla">
     <form class="tarjeta formulario" (ngSubmit)="confirmar()">
+      @if (esEdicion()) {
+        <fieldset>
+          <legend>Reserva a modificar</legend>
+          <div class="buscar">
+            <label>
+              <span>Número de reserva</span>
+              <input class="campo" type="number" min="1" name="idReserva" [(ngModel)]="idReserva" (ngModelChange)="cambioNumero()"
+                     (keydown.enter)="$event.preventDefault(); buscar()" />
+            </label>
+            <button type="button" class="btn btn-suave" (click)="buscar()" [disabled]="procesando() !== ''">
+              @if (procesando() === 'buscar') { <span class="spinner"></span> }
+              Buscar
+            </button>
+          </div>
+          @if (cargada(); as r) {
+            <p class="cargada">
+              Reserva N.º {{ r.idReserva }} cargada · estado <strong>{{ r.estado.toLowerCase() }}</strong>. Cambia lo que necesites y guarda.
+            </p>
+          }
+        </fieldset>
+      }
+
       <fieldset>
         <legend>Huésped y habitación</legend>
         <div class="fila-2">
@@ -45,7 +72,7 @@
         </button>
         <button type="submit" class="btn btn-primario" [disabled]="procesando() !== '' || creada() !== null">
           @if (procesando() === 'confirmar') { <span class="spinner"></span> }
-          Confirmar reserva
+          {{ esEdicion() ? 'Guardar cambios' : 'Confirmar reserva' }}
         </button>
       </div>
     </form>
@@ -54,7 +81,7 @@
       @if (creada(); as c) {
         <div class="confirmada">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>
-          <h2>Reserva N.º {{ c.idReserva }} confirmada</h2>
+          <h2>Reserva N.º {{ c.idReserva }} {{ esEdicion() ? 'actualizada' : 'confirmada' }}</h2>
           <p>Habitación {{ datos.idHabitacion }} · {{ datos.numeroPersonas }} {{ datos.numeroPersonas === 1 ? 'persona' : 'personas' }}</p>
         </div>
       } @else {
@@ -86,6 +113,10 @@
       </div>
       @if (precio() === null && !creada()) {
         <p class="nota">El precio aplica la tarifa de cada temporada que cruza la estadía.</p>
+      }
+
+      @if (creada() && !esEdicion()) {
+        <button type="button" class="btn btn-suave modificar" (click)="modificarCreada()">Modificar esta reserva</button>
       }
 
       @if (error(); as e) {

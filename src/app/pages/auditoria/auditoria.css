@@ -1,0 +1,146 @@
+.pagina {
+  background: var(--papel);
+  border-radius: 20px;
+  box-shadow: var(--sombra);
+  padding: 28px;
+  border: 1px solid var(--borde);
+}
+
+.encabezado h1 { font-size: 28px; color: var(--verde-900); line-height: 1.2; }
+.descripcion { margin: 6px 0 0; color: var(--tinta-suave); max-width: 64ch; line-height: 1.5; }
+
+/* ---------- Cifras ---------- */
+.cifras {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 22px 0 18px;
+  background: var(--verde-50);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+}
+.cifras > div { padding: 14px 18px; min-width: 0; }
+.cifras > div + div { border-left: 1px solid var(--borde); }
+.cifras span { display: block; font-size: 13px; color: var(--tinta-suave); }
+.cifras strong {
+  display: block;
+  margin-top: 2px;
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--verde-900);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Controles ---------- */
+.controles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; font-weight: 500; color: var(--tinta-suave); }
+label .campo { width: 150px; padding: 8px 11px; font-size: 14px; }
+.controles .btn { padding: 9px 14px; font-size: 14px; }
+.controles .spinner { width: 14px; height: 14px; }
+
+.segmentos {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--verde-100);
+}
+.segmentos button {
+  border: none;
+  background: transparent;
+  padding: 7px 12px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--verde-900);
+  cursor: pointer;
+}
+.segmentos button:hover { background: rgba(255, 255, 255, 0.6); }
+.segmentos button.activo { background: #fff; box-shadow: 0 2px 8px rgba(54, 160, 104, 0.18); }
+.segmentos button:focus-visible { outline: 2px solid var(--verde-600); outline-offset: 2px; }
+
+.mensaje { border-radius: 8px; padding: 10px 14px; font-size: 14px; margin-bottom: 16px; }
+.mensaje.mal { background: #fbebe7; color: var(--rojo); }
+.mensaje small { display: block; margin-top: 4px; font-size: 12px; opacity: 0.8; }
+
+/* ---------- Tabla ---------- */
+.tabla-envoltura {
+  overflow-x: auto;
+  background: #fff;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+}
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+th {
+  background: var(--verde-oscuro);
+  color: #fff;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  text-align: left;
+  padding: 12px 12px;
+  white-space: nowrap;
+}
+td { padding: 11px 12px; border-bottom: 1px solid #eef1ef; white-space: nowrap; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background-color: var(--verde-50); }
+.der { text-align: right; font-variant-numeric: tabular-nums; }
+td.fuerte { font-weight: 500; }
+td.sube { color: var(--verde-600); font-weight: 600; }
+td.baja { color: var(--rojo); font-weight: 600; }
+
+.pildora {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #eee;
+  color: #555;
+}
+.pildora[data-op='INSERT'] { background: var(--verde-100); color: var(--verde-800); }
+.pildora[data-op='UPDATE'] { background: #fbefd6; color: var(--cafe-700); }
+.pildora[data-op='DELETE'] { background: #fbeae6; color: var(--rojo); }
+
+.estado-vacio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 56px 20px;
+  text-align: center;
+  color: var(--tinta-suave);
+  border: 1px dashed var(--borde);
+  border-radius: var(--radio);
+}
+.estado-vacio .spinner { color: var(--verde-600); }
+
+.pie-tabla {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  font-size: 14px;
+  color: var(--tinta-suave);
+}
+.paginacion { display: flex; align-items: center; gap: 12px; }
+
+@media (max-width: 1000px) {
+  .cifras { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cifras > div:nth-child(3) { border-left: none; }
+  .cifras > div:nth-child(n + 3) { border-top: 1px solid var(--borde); }
+}
+@media (max-width: 900px) {
+  .pagina { padding: 18px; }
+  .segmentos { flex-wrap: wrap; }
+  .encabezado h1 { font-size: 22px; }
+}

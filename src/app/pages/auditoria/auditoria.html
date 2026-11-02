@@ -1,0 +1,101 @@
+<section class="pagina">
+  <header class="encabezado">
+    <h1>Auditoría de tarifas</h1>
+    <p class="descripcion">Cada vez que se crea, cambia o elimina una tarifa queda registrado quién lo hizo, cuándo y el valor anterior y el nuevo.</p>
+  </header>
+
+  <div class="cifras">
+    <div>
+      <span>Cambios registrados</span>
+      <strong>{{ conteo().total }}</strong>
+    </div>
+    <div>
+      <span>Tarifas creadas</span>
+      <strong>{{ conteo().creadas }}</strong>
+    </div>
+    <div>
+      <span>Tarifas modificadas</span>
+      <strong>{{ conteo().modificadas }}</strong>
+    </div>
+    <div>
+      <span>Tarifas eliminadas</span>
+      <strong>{{ conteo().eliminadas }}</strong>
+    </div>
+  </div>
+
+  <div class="controles">
+    <div class="segmentos" role="group" aria-label="Filtrar por operación">
+      @for (o of operaciones; track o.id) {
+        <button type="button" [class.activo]="filtro() === o.id" [attr.aria-pressed]="filtro() === o.id" (click)="cambiarFiltro(o.id)">
+          {{ o.nombre }}
+        </button>
+      }
+    </div>
+    <label>
+      <span>Habitación (ID)</span>
+      <input class="campo" type="number" min="1" placeholder="Todas" [ngModel]="habitacion()" (ngModelChange)="cambiarHabitacion($event ?? '')" />
+    </label>
+    <button class="btn btn-suave" (click)="cargar()" [disabled]="cargando()">
+      @if (cargando()) { <span class="spinner"></span> }
+      Recargar
+    </button>
+  </div>
+
+  @if (error(); as e) {
+    <div class="mensaje mal" role="alert">
+      <strong>{{ e.titulo }}.</strong> {{ e.mensaje }}
+      @if (e.codigo) { <small>Código {{ e.codigo }}</small> }
+    </div>
+  }
+
+  @if (cargando()) {
+    <div class="estado-vacio"><span class="spinner"></span> Cargando el historial…</div>
+  } @else if (!error() && filas().length === 0) {
+    <div class="estado-vacio">Todavía no hay cambios de tarifas registrados. Aparecerán aquí cuando se cree, modifique o elimine una tarifa.</div>
+  } @else if (!error() && filtradas().length === 0) {
+    <div class="estado-vacio">Ningún cambio coincide con el filtro.</div>
+  } @else if (!error()) {
+    <div class="tabla-envoltura">
+      <table>
+        <caption class="oculto">Historial de cambios de tarifas</caption>
+        <thead>
+        <tr>
+          <th scope="col">Fecha y hora</th>
+          <th scope="col">Usuario</th>
+          <th scope="col">Operación</th>
+          <th scope="col" class="der">Habitación</th>
+          <th scope="col" class="der">Temporada</th>
+          <th scope="col" class="der">Valor anterior</th>
+          <th scope="col" class="der">Valor nuevo</th>
+          <th scope="col" class="der">Variación</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (f of visibles(); track f.idAuditoria) {
+            <tr>
+              <td>{{ fechaHora(f.fechaCambio) }}</td>
+              <td class="fuerte">{{ f.usuario }}</td>
+              <td><span class="pildora" [attr.data-op]="f.tipoOperacion">{{ nombreOperacion(f.tipoOperacion) }}</span></td>
+              <td class="der">{{ f.idHabitacion }}</td>
+              <td class="der">{{ f.idTemporada }}</td>
+              <td class="der">{{ moneda(f.valorAnterior) }}</td>
+              <td class="der">{{ moneda(f.valorNuevo) }}</td>
+              <td class="der" [class.sube]="(variacion(f) ?? 0) > 0" [class.baja]="(variacion(f) ?? 0) < 0">{{ variacionTexto(f) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pie-tabla">
+      <span>{{ filtradas().length }} {{ filtradas().length === 1 ? 'cambio' : 'cambios' }}</span>
+      @if (totalPaginas() > 1) {
+        <div class="paginacion">
+          <button class="btn btn-suave" (click)="irA(pagina() - 1)" [disabled]="pagina() === 1">Anterior</button>
+          <span>Página {{ pagina() }} de {{ totalPaginas() }}</span>
+          <button class="btn btn-suave" (click)="irA(pagina() + 1)" [disabled]="pagina() === totalPaginas()">Siguiente</button>
+        </div>
+      }
+    </div>
+  }
+</section>

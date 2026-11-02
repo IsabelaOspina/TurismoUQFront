@@ -10,6 +10,15 @@ const numero = new Intl.NumberFormat('es-CO');
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio',
   'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
+const POR_PAGINA = 20;
+
+type Tipo = 'mensual' | 'temporada';
+type Filtro = 'TODAS' | 'ALTA' | 'MEDIA' | 'BAJA';
+
+/**
+ * Liquidación mensual (sp_liquidacion_mensual) y liquidación por temporada de
+ * un año (sp_liquidacion_temporada). Las dos guardan su resultado en una tabla.
+ */
 @Component({
   selector: 'app-liquidacion',
   imports: [FormsModule],
@@ -21,18 +30,37 @@ export class Liquidacion {
 
   readonly meses = MESES.map((nombre, i) => ({ numero: i + 1, nombre }));
   readonly anios = [2024, 2025, 2026];
+  readonly filtros: { id: Filtro; texto: string }[] = [
+    { id: 'TODAS', texto: 'Todas' },
+    { id: 'ALTA', texto: 'Alta' },
+    { id: 'MEDIA', texto: 'Media' },
+    { id: 'BAJA', texto: 'Baja' },
+  ];
 
   anio = 2025;
   mes = 3;
 
+  tipo = signal<Tipo>('mensual');
+  filtro = signal<Filtro>('TODAS');
+  pagina = signal(1);
+
   filas = signal<FilaLiquidacion[]>([]);
   cargando = signal<'' | 'generar' | 'consultar'>('');
   error = signal<ErrorPlsql | null>(null);
-  /** Mes mostrado y si viene de ejecutar el proceso o de leer la tabla. */
-  periodo = signal<{ texto: string; generada: boolean } | null>(null);
+  /** Periodo mostrado y si viene de ejecutar el proceso o de leer la tabla. */
+  periodo = signal<{ texto: string; generada: boolean; tipo: Tipo } | null>(null);
+
+  /** Filas visibles según la temporada elegida (solo aplica en la liquidación por temporada). */
+  filtradas = computed(() => {
+    const f = this.filtro();
+    return f === 'TODAS' ? this.filas() : this.filas().filter((x) => x.temporada === f);
+  });
+
+  totalPaginas = computed(() => Math.max(1, Math.ceil(this.filtradas().length / POR_PAGINA)));
+  visibles = computed(() => this.filtradas().slice((this.pagina() - 1) * POR_PAGINA, this.pagina() * POR_PAGINA));
 
   totales = computed(() =>
-    this.filas().reduce(
+    this.filtradas().reduce(
       (t, f) => ({
         reservas: t.reservas + Number(f.totalReservas),
         ingresos: t.ingresos + Number(f.ingresos),
@@ -43,12 +71,53 @@ export class Liquidacion {
     )
   );
 
+  /** Facturado de cada temporada en el año, para el resumen de arriba. */
+  porTemporada = computed(() =>
+    (['ALTA', 'MEDIA', 'BAJA'] as const).map((t) => {
+      const filas = this.filas().filter((f) => f.temporada === t);
+      return {
+        tipo: t,
+        reservas: filas.reduce((s, f) => s + Number(f.totalReservas), 0),
+        ingresos: filas.reduce((s, f) => s + Number(f.ingresos), 0),
+      };
+    })
+  );
+
+  cambiarTipo(tipo: Tipo): void {
+    if (tipo === this.tipo()) return;
+    this.tipo.set(tipo);
+    this.filas.set([]);
+    this.periodo.set(null);
+    this.error.set(null);
+    this.filtro.set('TODAS');
+    this.pagina.set(1);
+  }
+
+  cambiarFiltro(f: Filtro): void {
+    this.filtro.set(f);
+    this.pagina.set(1);
+  }
+
+  irA(p: number): void {
+    this.pagina.set(Math.min(Math.max(1, p), this.totalPaginas()));
+  }
+
   generar(): void {
-    this.ejecutar('generar', this.api.generarLiquidacion(this.anio, this.mes));
+    const peticion = this.tipo() === 'mensual'
+      ? this.api.generarLiquidacion(this.anio, this.mes)
+      : this.api.generarLiquidacionTemporada(this.anio);
+    this.ejecutar('generar', peticion);
   }
 
   consultar(): void {
-    this.ejecutar('consultar', this.api.consultarLiquidacion(this.anio, this.mes));
+    const peticion = this.tipo() === 'mensual'
+      ? this.api.consultarLiquidacion(this.anio, this.mes)
+      : this.api.consultarLiquidacionTemporada(this.anio);
+    this.ejecutar('consultar', peticion);
+  }
+
+  nombreTemporada(t: string): string {
+    return t ? t.charAt(0) + t.slice(1).toLowerCase() : '';
   }
 
   moneda(n: number): string {
@@ -65,13 +134,16 @@ export class Liquidacion {
   }
 
   private ejecutar(accion: 'generar' | 'consultar', peticion: Observable<FilaLiquidacion[]>): void {
-    const texto = `${MESES[this.mes - 1].toLowerCase()} de ${this.anio}`;
+    const tipo = this.tipo();
+    const texto = tipo === 'mensual' ? `${MESES[this.mes - 1].toLowerCase()} de ${this.anio}` : `${this.anio}`;
     this.cargando.set(accion);
     this.error.set(null);
     peticion.subscribe({
       next: (filas) => {
         this.filas.set(filas);
-        this.periodo.set({ texto, generada: accion === 'generar' });
+        this.filtro.set('TODAS');
+        this.pagina.set(1);
+        this.periodo.set({ texto, generada: accion === 'generar', tipo });
         this.cargando.set('');
       },
       error: (err: HttpErrorResponse) => {

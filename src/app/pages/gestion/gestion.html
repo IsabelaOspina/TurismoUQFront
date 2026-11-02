@@ -17,10 +17,19 @@
       @for (o of opciones; track o.id) {
         <button class="item" [class.activo]="vista() === o.id" (click)="abrir(o.id)">
           <span class="num" aria-hidden="true">
-            @if (o.id === 'reserva') {
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-            } @else {
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>
+            @switch (o.id) {
+              @case ('reserva') {
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              }
+              @case ('editar') {
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>
+              }
+              @case ('liquidacion') {
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>
+              }
+              @case ('auditoria') {
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              }
             }
           </span>
           <span class="nombre">{{ o.titulo }}</span>
@@ -53,10 +62,19 @@
       </div>
     </header>
 
-    @if (vista() === 'reserva') {
-      <app-reserva />
-    } @else {
-      <app-liquidacion />
+    @switch (vista()) {
+      @case ('reserva') {
+        <app-reserva modo="crear" (modificar)="editarCreada($event)" />
+      }
+      @case ('editar') {
+        <app-reserva modo="editar" [inicial]="reservaAEditar()" />
+      }
+      @case ('liquidacion') {
+        <app-liquidacion />
+      }
+      @case ('auditoria') {
+        <app-auditoria />
+      }
     }
   </main>
 </div>

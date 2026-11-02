@@ -1,8 +1,21 @@
 <section class="pagina">
   <header class="encabezado">
-    <h1>Liquidación mensual</h1>
-    <p class="descripcion">Facturado, pagado y saldo pendiente de cada alojamiento en el mes que elijas.</p>
+    <h1>Liquidación</h1>
+    <p class="descripcion">
+      @if (tipo() === 'mensual') {
+        Facturado, pagado y saldo pendiente de cada alojamiento en el mes que elijas.
+      } @else {
+        Facturado, pagado y saldo pendiente de cada alojamiento en un año, separado por temporada alta, media y baja.
+      }
+    </p>
   </header>
+
+  <div class="segmentos tipo" role="group" aria-label="Tipo de liquidación">
+    <button type="button" [class.activo]="tipo() === 'mensual'" [attr.aria-pressed]="tipo() === 'mensual'"
+            (click)="cambiarTipo('mensual')">Mensual</button>
+    <button type="button" [class.activo]="tipo() === 'temporada'" [attr.aria-pressed]="tipo() === 'temporada'"
+            (click)="cambiarTipo('temporada')">Por temporada</button>
+  </div>
 
   <div class="controles">
     <label>
@@ -11,12 +24,14 @@
         @for (a of anios; track a) { <option [ngValue]="a">{{ a }}</option> }
       </select>
     </label>
-    <label>
-      <span>Mes</span>
-      <select class="campo" [(ngModel)]="mes">
-        @for (m of meses; track m.numero) { <option [ngValue]="m.numero">{{ m.nombre }}</option> }
-      </select>
-    </label>
+    @if (tipo() === 'mensual') {
+      <label>
+        <span>Mes</span>
+        <select class="campo" [(ngModel)]="mes">
+          @for (m of meses; track m.numero) { <option [ngValue]="m.numero">{{ m.nombre }}</option> }
+        </select>
+      </label>
+    }
     <button class="btn btn-primario" (click)="generar()" [disabled]="cargando() !== ''">
       @if (cargando() === 'generar') { <span class="spinner"></span> }
       Generar liquidación
@@ -36,10 +51,30 @@
 
   @if (periodo(); as p) {
     @if (p.generada) {
-      <div class="mensaje ok" role="status">Liquidación de {{ p.texto }} generada para {{ filas().length }} alojamientos.</div>
+      <div class="mensaje ok" role="status">
+        @if (p.tipo === 'mensual') {
+          Liquidación de {{ p.texto }} generada para {{ filas().length }} alojamientos.
+        } @else {
+          Liquidación por temporada de {{ p.texto }} generada: {{ filas().length }} filas (alojamiento y temporada).
+        }
+      </div>
     }
 
     @if (filas().length > 0) {
+      @if (p.tipo === 'temporada') {
+        <div class="temporadas" role="group" aria-label="Filtrar por temporada">
+          @for (t of porTemporada(); track t.tipo) {
+            <button type="button" class="temporada" [attr.data-tipo]="t.tipo"
+                    [class.activo]="filtro() === t.tipo" [attr.aria-pressed]="filtro() === t.tipo"
+                    (click)="cambiarFiltro(filtro() === t.tipo ? 'TODAS' : t.tipo)">
+              <span class="pildora" [attr.data-tipo]="t.tipo">Temporada {{ nombreTemporada(t.tipo).toLowerCase() }}</span>
+              <strong>{{ moneda(t.ingresos) }}</strong>
+              <small>{{ cantidad(t.reservas) }} reservas</small>
+            </button>
+          }
+        </div>
+      }
+
       <div class="cifras">
         <div>
           <span>Reservas</span>
@@ -59,6 +94,15 @@
         </div>
       </div>
 
+      @if (p.tipo === 'temporada') {
+        <div class="segmentos filtro" role="group" aria-label="Mostrar temporada">
+          @for (f of filtros; track f.id) {
+            <button type="button" [class.activo]="filtro() === f.id" [attr.aria-pressed]="filtro() === f.id"
+                    (click)="cambiarFiltro(f.id)">{{ f.texto }}</button>
+          }
+        </div>
+      }
+
       <div class="tabla-envoltura">
         <table>
           <caption class="oculto">Liquidación de {{ p.texto }} por alojamiento</caption>
@@ -66,6 +110,7 @@
           <tr>
             <th scope="col">Alojamiento</th>
             <th scope="col">Municipio</th>
+            <th scope="col">Temporada</th>
             <th scope="col" class="der">Reservas</th>
             <th scope="col" class="der">Facturado</th>
             <th scope="col" class="der">Pagado</th>
@@ -74,10 +119,11 @@
           </tr>
           </thead>
           <tbody>
-            @for (f of filas(); track f.alojamiento + f.municipio) {
+            @for (f of visibles(); track f.alojamiento + f.municipio + f.temporada) {
               <tr>
                 <td class="fuerte">{{ f.alojamiento }}</td>
                 <td>{{ f.municipio }}</td>
+                <td><span class="pildora" [attr.data-tipo]="f.temporada">{{ nombreTemporada(f.temporada) }}</span></td>
                 <td class="der">{{ cantidad(f.totalReservas) }}</td>
                 <td class="der">{{ moneda(f.ingresos) }}</td>
                 <td class="der">{{ moneda(f.pagado) }}</td>
@@ -95,13 +141,24 @@
           </tbody>
         </table>
       </div>
+
+      @if (totalPaginas() > 1) {
+        <div class="paginacion">
+          <button class="btn btn-suave" (click)="irA(pagina() - 1)" [disabled]="pagina() === 1">Anterior</button>
+          <span>Página {{ pagina() }} de {{ totalPaginas() }}</span>
+          <button class="btn btn-suave" (click)="irA(pagina() + 1)" [disabled]="pagina() === totalPaginas()">Siguiente</button>
+        </div>
+      }
     } @else {
       <div class="estado-vacio">
         No hay liquidación de {{ p.texto }}.
-        @if (!p.generada) { Genérala para calcularla con las reservas del mes. }
+        @if (!p.generada) { Genérala para calcularla con las reservas. }
       </div>
     }
   } @else if (!error()) {
-    <div class="estado-vacio">Elige el año y el mes, y genera la liquidación.</div>
+    <div class="estado-vacio">
+      @if (tipo() === 'mensual') { Elige el año y el mes, y genera la liquidación. }
+      @else { Elige el año y genera la liquidación por temporada. }
+    </div>
   }
 </section>

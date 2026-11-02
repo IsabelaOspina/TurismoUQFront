@@ -5,13 +5,14 @@ import { Liquidacion } from '../liquidacion/liquidacion';
 import { Auditoria } from '../auditoria/auditoria';
 import { Reservas } from '../reservas/reservas';
 import { Concurrencia } from '../concurrencia/concurrencia';
+import { Indices } from '../indices/indices';
 
-type Vista = 'reservas' | 'liquidacion' | 'auditoria' | 'concurrencia';
+type Vista = 'reservas' | 'liquidacion' | 'auditoria' | 'concurrencia' | 'indices';
 
-/** Área de gestión: reservas, liquidación, auditoría de tarifas y prueba de concurrencia. */
+/** Área de gestión: reservas, liquidación, auditoría de tarifas, prueba de concurrencia e índices. */
 @Component({
   selector: 'app-gestion',
-  imports: [RouterLink, RouterLinkActive, Reservas, Liquidacion, Auditoria, Concurrencia],
+  imports: [RouterLink, RouterLinkActive, Reservas, Liquidacion, Auditoria, Concurrencia, Indices],
   templateUrl: './gestion.html',
   // Mismo diseño de menú lateral que las consultas
   styleUrls: ['../dashboard/dashboard.css', './gestion.css'],
@@ -27,6 +28,7 @@ export class Gestion {
     { id: 'liquidacion', titulo: 'Liquidación' },
     { id: 'auditoria', titulo: 'Auditoría de tarifas' },
     { id: 'concurrencia', titulo: 'Concurrencia' },
+    { id: 'indices', titulo: 'Índices' },
   ];
 
   vista = signal<Vista>('reservas');

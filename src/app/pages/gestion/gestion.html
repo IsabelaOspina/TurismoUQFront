@@ -27,6 +27,9 @@
               @case ('auditoria') {
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
               }
+              @case ('indices') {
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+              }
               @case ('concurrencia') {
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11M4 17h11"/><path d="M15 4l4 3-4 3M15 14l4 3-4 3"/></svg>
               }
@@ -74,6 +77,9 @@
       }
       @case ('concurrencia') {
         <app-concurrencia />
+      }
+      @case ('indices') {
+        <app-indices />
       }
     }
   </main>

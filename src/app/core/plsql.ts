@@ -96,6 +96,44 @@ export interface ReservaCruzada {
   estado: string;
 }
 
+/** Una consulta del experimento de índices. */
+export interface CasoIndice {
+  id: number;
+  titulo: string;
+  tipo: string;
+  consulta: string;
+  indice: string;
+  crear: string;
+  ayuda: boolean;
+  explicacion: string;
+  existe: boolean;
+}
+
+/** Un paso del plan de ejecución (una fila de PLAN_TABLE). */
+export interface PasoPlan {
+  nivel: number;
+  operacion: string;
+  objeto: string | null;
+  costo: number | null;
+  filas: number | null;
+}
+
+/** Plan y tiempo de una consulta: sin índice, con índice o forzado. */
+export interface MedicionIndice {
+  costo: number | null;
+  msPromedio: number;
+  repeticiones: number;
+  filasDevueltas: number;
+  plan: PasoPlan[];
+}
+
+export interface ComparacionIndice {
+  sinIndice: MedicionIndice;
+  conIndice: MedicionIndice;
+  forzado?: MedicionIndice;
+  indiceQueda: boolean;
+}
+
 /** Una tarifa de una habitación en una temporada (un mes). */
 export interface FilaTarifa {
   idHabitacion: number;
@@ -231,6 +269,16 @@ export class PlsqlService {
   reservasCruzadas(idHabitacion: number, fechaIn: string, fechaOut: string): Observable<ReservaCruzada[]> {
     const params = new HttpParams().set('idHabitacion', idHabitacion).set('fechaIn', fechaIn).set('fechaOut', fechaOut);
     return this.http.get<ReservaCruzada[]>(`${API_URL}/concurrencia/reservas`, { params });
+  }
+
+  /** Las consultas del experimento de índices. */
+  casosIndices(): Observable<CasoIndice[]> {
+    return this.http.get<CasoIndice[]>(`${API_URL}/indices`);
+  }
+
+  /** Mide la consulta sin el índice, lo crea y la vuelve a medir. */
+  compararIndice(id: number): Observable<ComparacionIndice> {
+    return this.http.post<ComparacionIndice>(`${API_URL}/indices/${id}/comparar`, {});
   }
 
   /** Las 12 tarifas de una habitación. */

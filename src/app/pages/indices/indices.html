@@ -1,0 +1,137 @@
+<section class="pagina">
+  <header class="encabezado">
+    <div>
+      <h1>Índices</h1>
+      <p class="descripcion">Costo estimado por Oracle y tiempo promedio de cada consulta, sin y con índice.</p>
+    </div>
+    <button class="btn btn-primario" (click)="analizar()" [disabled]="cargando() || hayProcesando() || !casos().length">
+      @if (hayProcesando()) { <span class="spinner"></span> Analizando… } @else { Analizar }
+    </button>
+  </header>
+
+  @if (resumen(); as s) {
+    <div class="indicadores">
+      <div class="indicador">
+        <span>Consultas optimizadas</span>
+        <strong>{{ s.optimizadas ?? '—' }}<small> / {{ s.total }}</small></strong>
+      </div>
+      <div class="indicador destacado">
+        <span>Reducción promedio del costo</span>
+        <strong>{{ s.reduccion !== null ? s.reduccion + ' %' : '—' }}</strong>
+      </div>
+      <div class="indicador">
+        <span>Índices descartados</span>
+        <strong>{{ s.descartados ?? '—' }}</strong>
+      </div>
+    </div>
+  }
+
+  @if (cargando()) {
+    <p class="aviso"><span class="spinner"></span> Cargando…</p>
+  } @else if (errorCarga(); as e) {
+    <div class="mensaje mal" role="alert">{{ e }}</div>
+  }
+
+  <div class="lista">
+    @for (caso of casos(); track caso.id) {
+      <article class="fila" [class.abierta]="abierto() === caso.id">
+        <div class="fila-principal">
+          <div class="identidad">
+            <h2>{{ caso.titulo }}</h2>
+            <span class="etiqueta" [attr.data-tipo]="caso.ayuda ? 'ayuda' : 'no'">
+              {{ caso.ayuda ? 'Índice ' + caso.tipo.toLowerCase() : 'Índice que no ayuda' }}
+            </span>
+          </div>
+
+          <div class="comparacion">
+            @if (estado(caso.id).resultado; as r) {
+              <div class="dato">
+                <span class="dato-nombre">Costo estimado</span>
+                <span class="dato-valor">{{ num(r.sinIndice.costo) }} <i>→</i> <b>{{ num(r.conIndice.costo) }}</b></span>
+                <span class="dato-ayuda">sin índice → con índice</span>
+              </div>
+              <div class="dato">
+                <span class="dato-nombre">Tiempo promedio</span>
+                <span class="dato-valor">{{ num(r.sinIndice.msPromedio) }} <i>→</i> <b>{{ num(r.conIndice.msPromedio) }}</b> ms</span>
+                <span class="dato-ayuda">sin índice → con índice</span>
+              </div>
+              @if (r.forzado) {
+                <div class="dato forzado">
+                  <span class="dato-nombre">Costo forzando el índice</span>
+                  <span class="dato-valor"><b>{{ num(r.forzado.costo) }}</b></span>
+                  <span class="dato-ayuda">mucho más alto</span>
+                </div>
+              }
+            } @else if (estado(caso.id).procesando) {
+              <p class="pendiente"><span class="spinner"></span> Midiendo…</p>
+            } @else if (estado(caso.id).error; as e) {
+              <p class="pendiente error">{{ e }}</p>
+            } @else {
+              <p class="pendiente">Pulsa Analizar</p>
+            }
+          </div>
+
+          <div class="veredicto">
+            @if (estado(caso.id).resultado; as r) {
+              @if (caso.ayuda) {
+                <strong class="mejora">{{ cambio(r.sinIndice.costo, r.conIndice.costo) }} %</strong>
+                <span class="sub">de costo</span>
+                <span class="estado ok">Optimizada</span>
+              } @else {
+                <strong class="mejora neutra">Sin mejora</strong>
+                <span class="estado aviso">Descartado</span>
+              }
+            }
+            <button class="enlace" (click)="alternar(caso.id)" [attr.aria-expanded]="abierto() === caso.id">
+              {{ abierto() === caso.id ? 'Ocultar' : 'Ver detalle' }}
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        @if (abierto() === caso.id) {
+          <div class="detalle">
+            <section>
+              <h3>Por qué</h3>
+              <p class="explicacion">{{ caso.explicacion }}</p>
+            </section>
+
+            @if (estado(caso.id).resultado; as r) {
+              <section>
+                <div class="titulo-bloque">
+                  <h3>Plan de ejecución</h3>
+                  <span class="leyenda"><i class="rojo"></i>Lee la tabla completa <i class="verde"></i>Usa el índice</span>
+                </div>
+                <div class="planes">
+                  @for (p of planes(r); track p.titulo) {
+                    <div class="plan" [class.ancho]="p.titulo === 'Forzando el índice'">
+                      <div class="plan-cabecera">
+                        <span>{{ p.titulo }}</span>
+                        <small>costo {{ num(p.m.costo) }}</small>
+                      </div>
+                      <ol>
+                        @for (paso of p.m.plan; track $index) {
+                          <li [attr.data-tipo]="clasePaso(paso)" [style.padding-left.px]="14 + paso.nivel * 14">
+                            {{ paso.operacion }}@if (paso.objeto) { <span class="obj">&nbsp;· {{ paso.objeto }}</span> }
+                          </li>
+                        }
+                      </ol>
+                    </div>
+                  }
+                </div>
+              </section>
+            }
+
+            <section>
+              <h3>Consulta e índice</h3>
+              <div class="codigos">
+                <pre>{{ caso.consulta }}</pre>
+                <pre>{{ caso.crear }};</pre>
+              </div>
+            </section>
+          </div>
+        }
+      </article>
+    }
+  </div>
+</section>

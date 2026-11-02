@@ -1,0 +1,121 @@
+<section class="pagina">
+  <header class="encabezado">
+    <h1>Concurrencia</h1>
+    <p class="descripcion">Dos sesiones intentan reservar la misma habitación en las mismas fechas al mismo tiempo. Compara qué pasa sin bloqueo y con <code>SELECT ... FOR UPDATE</code>.</p>
+  </header>
+
+  <div class="controles">
+    <label>
+      <span>Habitación (ID)</span>
+      <input class="campo" type="number" min="1" name="idHabitacion" [(ngModel)]="idHabitacion" [disabled]="corriendo()" />
+    </label>
+    <label>
+      <span>Entrada</span>
+      <input class="campo" type="date" name="fechaIn" [(ngModel)]="fechaIn" [disabled]="corriendo()" />
+    </label>
+    <label>
+      <span>Salida</span>
+      <input class="campo" type="date" name="fechaOut" [(ngModel)]="fechaOut" [disabled]="corriendo()" />
+    </label>
+    <label class="corto">
+      <span>Procesamiento</span>
+      <div class="con-sufijo">
+        <input class="campo" type="number" min="1" max="15" name="segundos" [(ngModel)]="segundos" [disabled]="corriendo()" />
+        <span>s</span>
+      </div>
+    </label>
+  </div>
+
+  <div class="botones">
+    <button class="btn btn-suave" (click)="ejecutar('sin')" [disabled]="corriendo()">
+      @if (corriendo() && modo() === 'sin') { <span class="spinner"></span> }
+      Probar sin bloqueo
+    </button>
+    <button class="btn btn-primario" (click)="ejecutar('con')" [disabled]="corriendo()">
+      @if (corriendo() && modo() === 'con') { <span class="spinner"></span> }
+      Probar con FOR UPDATE
+    </button>
+  </div>
+  <p class="ayuda">Antes de cada prueba se borran las reservas que dejó una prueba anterior con esta habitación y estas fechas. Usa fechas sin otras reservas (por ejemplo, de 2027).</p>
+
+  @if (error(); as e) {
+    <div class="mensaje mal" role="alert">{{ e }}</div>
+  }
+
+  @if (sesiones().length) {
+    <div class="sesiones">
+      @for (s of sesiones(); track s.nombre) {
+        <article class="sesion" [class.ok]="s.resultado?.ok" [class.rechazada]="s.resultado && !s.resultado.ok">
+          <header>
+            <strong>Sesión {{ s.nombre }}</strong>
+            <small>Cliente {{ s.idCliente }}{{ s.nombre === 'B' ? ' · arranca 0,3 s después' : '' }}</small>
+          </header>
+
+          @if (!s.resultado) {
+            <p class="estado en-curso"><span class="spinner"></span> En curso · {{ segundosSesion(s) }}</p>
+          } @else if (s.resultado.ok) {
+            <p class="estado">Reservó · N.º {{ s.resultado.idReserva }}</p>
+          } @else {
+            <p class="estado">Rechazada</p>
+            <p class="detalle">{{ s.resultado.error }}</p>
+          }
+
+          @if (s.resultado) {
+            <dl>
+              <div><dt>Duración</dt><dd>{{ segundosSesion(s) }}</dd></div>
+              <div><dt>Esperando el bloqueo</dt><dd>{{ modo() === 'con' ? seg(esperaBloqueo(s)) : 'No aplica' }}</dd></div>
+            </dl>
+          }
+        </article>
+      }
+    </div>
+
+    @if (escala()) {
+      <div class="linea">
+        <h3>Línea de tiempo</h3>
+        @for (s of sesiones(); track s.nombre) {
+          @if (tramos(s); as t) {
+            <div class="fila-linea">
+              <span class="etiqueta-linea">{{ s.nombre }}</span>
+              <div class="pista">
+                <div class="tramo espera" [style.left.%]="t.desplazamiento" [style.width.%]="t.espera"></div>
+                <div class="tramo trabajo" [class.rechazada]="!s.resultado!.ok"
+                     [style.left.%]="t.desplazamiento + t.espera" [style.width.%]="t.trabajo"></div>
+              </div>
+            </div>
+          }
+        }
+        <div class="leyenda">
+          <span><i class="espera"></i>Esperando el bloqueo</span>
+          <span><i class="trabajo"></i>Validando, insertando y confirmando</span>
+          <span><i class="rechazada"></i>Rechazada</span>
+        </div>
+      </div>
+    }
+  }
+
+  @if (reservas(); as lista) {
+    @if (lista.length > 1) {
+      <div class="veredicto mal">
+        <strong>La habitación {{ idHabitacion }} quedó reservada {{ lista.length }} veces para las mismas fechas.</strong>
+        <p>Las dos sesiones revisaron la disponibilidad antes de que la otra confirmara. Ninguna vio la reserva sin confirmar de la otra (ni siquiera el disparador de solapamiento), así que las dos insertaron.</p>
+        <ul>
+          @for (r of lista; track r.idReserva) {
+            <li>Reserva N.º {{ r.idReserva }} · cliente {{ r.idCliente }} · {{ r.fechaEntrada }} a {{ r.fechaSalida }}</li>
+          }
+        </ul>
+      </div>
+    } @else if (lista.length === 1) {
+      <div class="veredicto ok">
+        <strong>Una sola reserva: N.º {{ lista[0].idReserva }} del cliente {{ lista[0].idCliente }}.</strong>
+        @if (modo() === 'con') {
+          <p>La sesión A bloqueó la habitación con <code>FOR UPDATE</code>. La sesión B quedó detenida hasta que A hizo COMMIT; al continuar ya vio la reserva confirmada y fue rechazada.</p>
+        } @else {
+          <p>Solo una de las dos sesiones alcanzó a reservar.</p>
+        }
+      </div>
+    } @else {
+      <div class="veredicto">No quedó ninguna reserva ocupando la habitación en esas fechas.</div>
+    }
+  }
+</section>

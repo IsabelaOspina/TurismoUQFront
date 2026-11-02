@@ -4,13 +4,14 @@ import { AuthService } from '../../core/auth.service';
 import { Liquidacion } from '../liquidacion/liquidacion';
 import { Auditoria } from '../auditoria/auditoria';
 import { Reservas } from '../reservas/reservas';
+import { Concurrencia } from '../concurrencia/concurrencia';
 
-type Vista = 'reservas' | 'liquidacion' | 'auditoria';
+type Vista = 'reservas' | 'liquidacion' | 'auditoria' | 'concurrencia';
 
-/** Área de gestión: reservas, liquidación y auditoría de tarifas. */
+/** Área de gestión: reservas, liquidación, auditoría de tarifas y prueba de concurrencia. */
 @Component({
   selector: 'app-gestion',
-  imports: [RouterLink, RouterLinkActive, Reservas, Liquidacion, Auditoria],
+  imports: [RouterLink, RouterLinkActive, Reservas, Liquidacion, Auditoria, Concurrencia],
   templateUrl: './gestion.html',
   // Mismo diseño de menú lateral que las consultas
   styleUrls: ['../dashboard/dashboard.css', './gestion.css'],
@@ -25,6 +26,7 @@ export class Gestion {
     { id: 'reservas', titulo: 'Reservas' },
     { id: 'liquidacion', titulo: 'Liquidación' },
     { id: 'auditoria', titulo: 'Auditoría de tarifas' },
+    { id: 'concurrencia', titulo: 'Concurrencia' },
   ];
 
   vista = signal<Vista>('reservas');

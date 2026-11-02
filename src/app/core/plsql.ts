@@ -66,6 +66,36 @@ export interface ServicioAlojamiento {
   precio: number;
 }
 
+/** Datos de una reserva del experimento de concurrencia. */
+export interface PruebaConcurrencia {
+  conBloqueo: boolean;
+  idCliente: number;
+  idHabitacion: number;
+  fechaIn: string;
+  fechaOut: string;
+  numeroPersonas: number;
+  segundosEspera: number;
+}
+
+/** Resultado de una sesión del experimento (tiempos medidos en el servidor). */
+export interface ResultadoSesion {
+  ok: boolean;
+  idReserva?: number;
+  msBloqueo?: number;
+  error?: string;
+  inicioMs: number;
+  finMs: number;
+}
+
+/** Reserva activa que ocupa la habitación en las fechas de la prueba. */
+export interface ReservaCruzada {
+  idReserva: number;
+  idCliente: number;
+  fechaEntrada: string;
+  fechaSalida: string;
+  estado: string;
+}
+
 /** Una tarifa de una habitación en una temporada (un mes). */
 export interface FilaTarifa {
   idHabitacion: number;
@@ -185,6 +215,22 @@ export class PlsqlService {
     return this.http.get<ServicioAlojamiento[]>(`${API_URL}/reservas-pago/servicios`, {
       params: new HttpParams().set('idHabitacion', idHabitacion),
     });
+  }
+
+  /** Una reserva del experimento: sp_reservar_con_bloqueo o sp_reservar_sin_bloqueo. */
+  reservaConcurrente(datos: PruebaConcurrencia): Observable<ResultadoSesion> {
+    return this.http.post<ResultadoSesion>(`${API_URL}/concurrencia/reservar`, datos);
+  }
+
+  /** Borra las reservas de la prueba (misma habitación y fechas) para repetirla. */
+  limpiarConcurrencia(idHabitacion: number, fechaIn: string, fechaOut: string): Observable<{ borradas: number }> {
+    return this.http.post<{ borradas: number }>(`${API_URL}/concurrencia/limpiar`, { idHabitacion, fechaIn, fechaOut });
+  }
+
+  /** Reservas activas de la habitación que se cruzan con las fechas de la prueba. */
+  reservasCruzadas(idHabitacion: number, fechaIn: string, fechaOut: string): Observable<ReservaCruzada[]> {
+    const params = new HttpParams().set('idHabitacion', idHabitacion).set('fechaIn', fechaIn).set('fechaOut', fechaOut);
+    return this.http.get<ReservaCruzada[]>(`${API_URL}/concurrencia/reservas`, { params });
   }
 
   /** Las 12 tarifas de una habitación. */

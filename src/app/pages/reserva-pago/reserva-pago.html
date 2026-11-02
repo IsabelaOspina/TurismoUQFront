@@ -1,0 +1,215 @@
+<section class="pagina">
+  <header class="encabezado">
+    <h1>Reserva con pago</h1>
+    <p class="descripcion">Registra la reserva, un servicio adicional y el pago en una sola operación. Si el pago no es válido no se guarda nada; si falla el servicio, la reserva sigue sin él.</p>
+  </header>
+
+  <div class="rejilla">
+    <form class="tarjeta formulario" (ngSubmit)="confirmar()">
+      <fieldset>
+        <legend>Huésped y habitación</legend>
+        <div class="fila-2">
+          <label>
+            <span>Cliente (ID)</span>
+            <input class="campo" type="number" min="1" name="idCliente" [(ngModel)]="datos.idCliente" />
+          </label>
+          <label>
+            <span>Habitación (ID)</span>
+            <input class="campo" type="number" min="1" name="idHabitacion" [(ngModel)]="datos.idHabitacion" (ngModelChange)="cambioHabitacion()" />
+          </label>
+        </div>
+        <label class="corto">
+          <span>Número de personas</span>
+          <input class="campo" type="number" min="1" name="numeroPersonas" [(ngModel)]="datos.numeroPersonas" />
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Fechas de la estadía</legend>
+        <div class="fila-2">
+          <label>
+            <span>Entrada</span>
+            <input class="campo" type="date" name="fechaIn" [(ngModel)]="datos.fechaIn" (ngModelChange)="cambioFechas()" />
+          </label>
+          <label>
+            <span>Salida</span>
+            <input class="campo" type="date" name="fechaOut" [(ngModel)]="datos.fechaOut" (ngModelChange)="cambioFechas()" />
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Servicio adicional <span class="opcional">opcional</span></legend>
+        @if (servicios().length) {
+          <div class="fila-2">
+            <label>
+              <span>Servicio</span>
+              <select class="campo" name="idServicio" [(ngModel)]="datos.idServicio" (ngModelChange)="cambioServicio()">
+                <option [ngValue]="null">Ninguno</option>
+                @for (s of servicios(); track s.idServicio) {
+                  <option [ngValue]="s.idServicio">{{ s.nombre }} · {{ moneda(s.precio) }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              <span>Cantidad</span>
+              <input class="campo" type="number" name="cantidadServicio" [(ngModel)]="datos.cantidadServicio"
+                     (ngModelChange)="cambioServicio()" [disabled]="!datos.idServicio" />
+            </label>
+          </div>
+          <p class="ayuda">Se admiten de 1 a 10 unidades. Su valor se suma al de la reserva al calcular el precio.</p>
+        } @else if (cargandoServicios()) {
+          <p class="ayuda">Buscando los servicios del alojamiento…</p>
+        } @else if (datos.idHabitacion) {
+          <p class="ayuda">El alojamiento de esta habitación no tiene servicios, o la habitación no existe.</p>
+        } @else {
+          <p class="ayuda">Escribe la habitación para ver los servicios de su alojamiento.</p>
+        }
+      </fieldset>
+
+      <fieldset>
+        <legend>Pago</legend>
+        <div class="fila-2">
+          <label>
+            <span>Valor a pagar</span>
+            <input class="campo" type="number" min="1" step="1000" name="valorPago" [(ngModel)]="datos.valorPago" />
+          </label>
+          <label>
+            <span>Método</span>
+            <select class="campo" name="metodoPago" [(ngModel)]="datos.metodoPago">
+              @for (m of metodos; track m) { <option [ngValue]="m">{{ nombreMetodo(m) }}</option> }
+            </select>
+          </label>
+        </div>
+        <p class="ayuda">Puede ser el total o un anticipo. No puede superar el valor de la reserva.</p>
+      </fieldset>
+
+      <div class="acciones">
+        <button type="button" class="btn btn-suave" (click)="calcularPrecio()" [disabled]="procesando() !== ''">
+          @if (procesando() === 'precio') { <span class="spinner"></span> }
+          Calcular precio
+        </button>
+        <button type="submit" class="btn btn-primario" [disabled]="procesando() !== '' || resultado() !== null">
+          @if (procesando() === 'confirmar') { <span class="spinner"></span> }
+          Reservar y pagar
+        </button>
+      </div>
+    </form>
+
+    <aside class="tarjeta resumen" aria-live="polite">
+      @if (resultado(); as r) {
+        <div class="confirmada">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>
+          <h2>Reserva N.º {{ r.idReserva }} pagada</h2>
+          <p>Pago N.º {{ r.idPago }} · {{ nombreMetodo(enviado()!.metodoPago) }} · {{ moneda(enviado()!.valorPago!) }}</p>
+        </div>
+      } @else {
+        <h2>Resumen</h2>
+      }
+
+      <dl>
+        <div><dt>Noches</dt><dd>{{ noches() > 0 ? noches() : '—' }}</dd></div>
+        <div><dt>Estadía</dt><dd>{{ precio() !== null ? moneda(precio()!) : '—' }}</dd></div>
+        @if (resultado(); as r) {
+          @if (r.resultadoServicio === 'AGREGADO') {
+            <div><dt>{{ servicioEnviado()?.nombre }} × {{ enviado()?.cantidadServicio }}</dt><dd>+ {{ moneda(subtotalEnviado()) }}</dd></div>
+          } @else if (r.resultadoServicio === 'REVERTIDO') {
+            <div><dt>{{ servicioEnviado()?.nombre }} × {{ enviado()?.cantidadServicio }}</dt><dd class="tachado">{{ moneda(subtotalEnviado()) }}</dd></div>
+          }
+        } @else if (servicioActual(); as s) {
+          <div>
+            <dt>{{ s.nombre }} × {{ datos.cantidadServicio }}</dt>
+            @if (cantidadValida()) {
+              <dd>+ {{ moneda(subtotalServicio()) }}</dd>
+            } @else {
+              <dd class="excede">Cantidad no válida</dd>
+            }
+          </div>
+        }
+      </dl>
+
+      <div class="total">
+        <span>Valor de la reserva</span>
+        @if (resultado(); as r) {
+          <strong>{{ moneda(r.valorTotal) }}</strong>
+        } @else if (totalReserva() !== null) {
+          <strong>{{ moneda(totalReserva()!) }}</strong>
+        } @else {
+          <strong class="pendiente">—</strong>
+        }
+      </div>
+
+      <dl class="pago">
+        <div><dt>Pago</dt><dd>{{ datos.valorPago ? moneda(datos.valorPago) : '—' }}</dd></div>
+        <div>
+          <dt>Saldo pendiente</dt>
+          @if (saldo() !== null && saldo()! < 0) {
+            <dd class="excede">Supera el valor de la reserva</dd>
+          } @else {
+            <dd>{{ saldo() !== null ? moneda(saldo()!) : '—' }}</dd>
+          }
+        </div>
+      </dl>
+
+      @if (resultado() || error()) {
+        <div class="transaccion">
+          <h3>Qué pasó en la transacción</h3>
+          <ol>
+            @if (resultado(); as r) {
+              <li class="ok"><span class="marca"></span>Reserva N.º {{ r.idReserva }} creada · estadía {{ moneda(precio() ?? 0) }}</li>
+              <li class="punto"><span class="marca"></span><code>SAVEPOINT sp_reserva_creada</code></li>
+              @switch (r.resultadoServicio) {
+                @case ('AGREGADO') {
+                  <li class="ok">
+                    <span class="marca"></span>
+                    <div>
+                      Servicio agregado: {{ servicioEnviado()?.nombre }} × {{ enviado()?.cantidadServicio }}
+                      <small>+ {{ moneda(subtotalEnviado()) }} → la reserva queda en {{ moneda(r.valorTotal) }}</small>
+                    </div>
+                  </li>
+                }
+                @case ('REVERTIDO') {
+                  <li class="revertido">
+                    <span class="marca"></span>
+                    <div>
+                      Servicio revertido con <code>ROLLBACK TO sp_reserva_creada</code>
+                      <small>{{ r.detalleServicio }}</small>
+                      <small>El valor vuelve a {{ moneda(r.valorTotal) }}; la reserva se conserva.</small>
+                    </div>
+                  </li>
+                }
+                @default {
+                  <li class="neutro"><span class="marca"></span>Sin servicio adicional</li>
+                }
+              }
+              <li class="ok"><span class="marca"></span>Pago N.º {{ r.idPago }} registrado · {{ moneda(enviado()!.valorPago!) }}</li>
+              <li class="ok"><span class="marca"></span><code>COMMIT</code> · todo guardado</li>
+            } @else if (error(); as e) {
+              <li class="fallo">
+                <span class="marca"></span>
+                <div>
+                  {{ e.titulo }}
+                  <small>{{ e.mensaje }}</small>
+                  @if (e.codigo) { <small>Código {{ e.codigo }}</small> }
+                </div>
+              </li>
+              @if (enviado()) {
+                <li class="revertido">
+                  <span class="marca"></span>
+                  <div>
+                    <code>ROLLBACK TO sp_inicio</code>
+                    <small>No se guardó la reserva, ni el servicio, ni el pago.</small>
+                  </div>
+                </li>
+              }
+            }
+          </ol>
+        </div>
+      }
+
+      @if (resultado()) {
+        <button type="button" class="btn btn-suave modificar" (click)="nueva()">Registrar otra</button>
+      }
+    </aside>
+  </div>
+</section>

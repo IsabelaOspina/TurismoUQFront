@@ -1,0 +1,18 @@
+<div class="segmentos" role="tablist" aria-label="Reservas">
+  @for (p of pestanas; track p.id) {
+    <button type="button" role="tab" [class.activo]="pestana() === p.id" [attr.aria-selected]="pestana() === p.id"
+            (click)="abrir(p.id)">{{ p.titulo }}</button>
+  }
+</div>
+
+@switch (pestana()) {
+  @case ('nueva') {
+    <app-reserva modo="crear" (modificar)="editarCreada($event)" />
+  }
+  @case ('pago') {
+    <app-reserva-pago />
+  }
+  @case ('editar') {
+    <app-reserva modo="editar" [inicial]="reservaAEditar()" />
+  }
+}

@@ -1,0 +1,23 @@
+:host { display: block; }
+
+.segmentos {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  background: var(--verde-100);
+}
+.segmentos button {
+  border: none;
+  background: transparent;
+  padding: 8px 18px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--verde-900);
+  cursor: pointer;
+}
+.segmentos button:hover { background: rgba(255, 255, 255, 0.6); }
+.segmentos button.activo { background: #fff; box-shadow: 0 2px 8px rgba(54, 160, 104, 0.18); }
+.segmentos button:focus-visible { outline: 2px solid var(--verde-600); outline-offset: 2px; }

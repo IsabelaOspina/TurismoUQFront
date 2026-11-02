@@ -36,6 +36,36 @@ export interface ReservaExistente {
   valorTotal: number;
 }
 
+/** Datos para registrar reserva y pago en una sola transacción. */
+export interface ReservaConPago {
+  idCliente: number | null;
+  idHabitacion: number | null;
+  fechaIn: string;
+  fechaOut: string;
+  numeroPersonas: number | null;
+  valorPago: number | null;
+  metodoPago: 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | 'PSE';
+  idServicio: number | null;
+  cantidadServicio: number | null;
+}
+
+/** Respuesta de PKG_TURISMO_UQ.sp_reservar_y_pagar. */
+export interface ResultadoReservaPago {
+  idReserva: number;
+  idPago: number;
+  resultadoServicio: 'AGREGADO' | 'REVERTIDO' | 'SIN_SERVICIO';
+  detalleServicio: string | null;
+  /** Valor final de la reserva: estadía + servicio (si se agregó). */
+  valorTotal: number;
+}
+
+/** Un servicio adicional del alojamiento de la habitación. */
+export interface ServicioAlojamiento {
+  idServicio: number;
+  nombre: string;
+  precio: number;
+}
+
 /** Una tarifa de una habitación en una temporada (un mes). */
 export interface FilaTarifa {
   idHabitacion: number;
@@ -84,6 +114,10 @@ const TITULOS: Record<string, string> = {
   'ORA-20116': 'Se supera la capacidad',
   'ORA-20117': 'Habitación no disponible',
   'ORA-20200': 'Habitación no disponible',
+  'ORA-20400': 'Valor del pago no válido',
+  'ORA-20401': 'Método de pago no válido',
+  'ORA-20402': 'Servicio no válido',
+  'ORA-20403': 'Cantidad del servicio no válida',
   'ORA-20300': 'Mes no válido',
   'ORA-20301': 'Año no válido',
   'ORA-02291': 'Cliente o habitación inexistente',
@@ -138,6 +172,18 @@ export class PlsqlService {
       fechaEntrada: datos.fechaIn,
       fechaSalida: datos.fechaOut,
       numeroPersonas: datos.numeroPersonas,
+    });
+  }
+
+  /** PKG_TURISMO_UQ.sp_reservar_y_pagar: reserva, servicio y pago atómicos, con SAVEPOINT antes del servicio. */
+  reservarYPagar(datos: ReservaConPago): Observable<ResultadoReservaPago> {
+    return this.http.post<ResultadoReservaPago>(`${API_URL}/reservas-pago`, datos);
+  }
+
+  /** Servicios del alojamiento al que pertenece la habitación. */
+  serviciosDeHabitacion(idHabitacion: number): Observable<ServicioAlojamiento[]> {
+    return this.http.get<ServicioAlojamiento[]>(`${API_URL}/reservas-pago/servicios`, {
+      params: new HttpParams().set('idHabitacion', idHabitacion),
     });
   }
 

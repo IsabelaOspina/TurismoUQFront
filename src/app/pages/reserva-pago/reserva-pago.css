@@ -1,0 +1,62 @@
+.opcional {
+  margin-left: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--texto-suave);
+}
+.ayuda { margin: 0; font-size: 13px; color: var(--texto-suave); line-height: 1.45; }
+select.campo { padding: 9px 12px; font-size: 14px; }
+input.campo:disabled { background: #f3f5f4; color: #9aa59f; }
+
+.transaccion { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--linea); }
+.transaccion h3 { font-size: 15px; color: var(--verde-900); margin-bottom: 10px; }
+.transaccion ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.transaccion li {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  padding: 7px 0 7px 2px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.transaccion li:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 25px;
+  bottom: -7px;
+  width: 2px;
+  background: var(--linea);
+}
+.transaccion li div { display: flex; flex-direction: column; gap: 2px; }
+.transaccion small { font-size: 12.5px; color: var(--texto-suave); }
+.transaccion code {
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-size: 12.5px;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.marca {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  background: #fff;
+  position: relative;
+  z-index: 1;
+}
+li.ok .marca { color: var(--hoja); background: var(--hoja); }
+li.punto .marca { color: #8a9a92; width: 10px; height: 10px; margin: 5px 2px 0; }
+li.neutro .marca { color: #b4bfb9; }
+li.revertido .marca { color: #c68a1a; background: #fbefd6; }
+li.fallo .marca { color: var(--cereza); background: var(--cereza); }
+li.fallo { color: var(--cereza); font-weight: 500; }
+li.fallo small { font-weight: 400; color: #6f2a1d; }
+dd.excede { color: var(--cereza); }
+dd.tachado { text-decoration: line-through; color: #9aa59f; }
+dl.pago { margin-top: 4px; }

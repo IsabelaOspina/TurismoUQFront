@@ -8,9 +8,17 @@ interface EstadoCaso {
   error: string | null;
 }
 
+/** Nombre y descripción para el usuario de cada consulta (por id). */
+const TEXTOS: Record<number, { nombre: string; descripcion: string }> = {
+  1: { nombre: 'Reservas que llegan en un día', descripcion: 'Cuántas reservas llegan en una fecha, por estado.' },
+  2: { nombre: 'Buscar cliente por correo', descripcion: 'Encuentra al cliente aunque el correo se escriba con otras mayúsculas.' },
+  3: { nombre: 'Pagos recibidos en un día', descripcion: 'Cuántos pagos entraron en una fecha y cuánto suman.' },
+  4: { nombre: 'Reservas finalizadas', descripcion: 'Total de reservas terminadas y sus ingresos.' },
+};
+
 const numero = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 2 });
 
-/** Compara cada consulta sin y con su índice: costo, tiempo y plan de ejecución. */
+/** Velocidad de cada consulta sin y con su índice; el plan de ejecución queda en los detalles. */
 @Component({
   selector: 'app-indices',
   templateUrl: './indices.html',
@@ -25,19 +33,16 @@ export class Indices implements OnInit {
   estados = signal<Record<number, EstadoCaso>>({});
   abierto = signal<number | null>(null);
 
-  /** Indicadores del encabezado. */
+  /** Resumen: cuántas consultas mejoraron y la mejora promedio. */
   resumen = computed(() => {
     const est = this.estados();
-    const utiles = this.casos().filter((c) => c.ayuda);
-    const medidos = utiles.map((c) => est[c.id]?.resultado).filter((r): r is ComparacionIndice => !!r);
-    const reducciones = medidos
-      .map((r) => this.cambio(r.sinIndice.costo, r.conIndice.costo))
-      .filter((x): x is number => x !== null);
+    const medidos = this.casos().filter((c) => est[c.id]?.resultado);
+    if (!medidos.length) return null;
+    const veces = medidos.map((c) => this.veces(est[c.id].resultado!)).filter((v) => v >= 1.1);
     return {
-      total: utiles.length,
-      optimizadas: medidos.length ? medidos.filter((r) => (r.conIndice.costo ?? 0) < (r.sinIndice.costo ?? 0)).length : null,
-      reduccion: reducciones.length ? Math.round(reducciones.reduce((a, b) => a + b, 0) / reducciones.length) : null,
-      descartados: this.casos().filter((c) => !c.ayuda && est[c.id]?.resultado).length || null,
+      mejoradas: veces.length,
+      total: medidos.length,
+      promedio: veces.length ? veces.reduce((a, b) => a + b, 0) / veces.length : null,
     };
   });
 
@@ -55,6 +60,10 @@ export class Indices implements OnInit {
     });
   }
 
+  texto(c: CasoIndice): { nombre: string; descripcion: string } {
+    return TEXTOS[c.id] ?? { nombre: c.titulo, descripcion: '' };
+  }
+
   estado(id: number): EstadoCaso {
     return this.estados()[id] ?? { procesando: false, resultado: null, error: null };
   }
@@ -64,7 +73,8 @@ export class Indices implements OnInit {
   }
 
   /** Mide las consultas una tras otra. */
-  analizar(): void {
+  medir(): void {
+    this.abierto.set(null);
     const lista = this.casos();
     const siguiente = (i: number) => {
       if (i < lista.length) this.comparar(lista[i], () => siguiente(i + 1));
@@ -76,6 +86,24 @@ export class Indices implements OnInit {
     this.abierto.set(this.abierto() === id ? null : id);
   }
 
+  /** Cuántas veces más rápida es con el índice (por tiempo promedio). */
+  veces(r: ComparacionIndice): number {
+    const con = r.conIndice.msPromedio;
+    return con > 0 ? r.sinIndice.msPromedio / con : 1;
+  }
+
+  mejora(c: CasoIndice, r: ComparacionIndice): string {
+    const v = this.veces(r);
+    if (!c.ayuda || v < 1.1) return 'Sin mejora';
+    return `${this.redondo(v)}× más rápida`;
+  }
+
+  /** Ancho (%) de las barras de tiempo, relativo a la más lenta. */
+  ancho(r: ComparacionIndice, ms: number): number {
+    const max = Math.max(r.sinIndice.msPromedio, r.conIndice.msPromedio, 0.0001);
+    return Math.max(2, (ms / max) * 100);
+  }
+
   planes(r: ComparacionIndice): { titulo: string; m: MedicionIndice }[] {
     const p = [
       { titulo: 'Sin índice', m: r.sinIndice },
@@ -85,15 +113,18 @@ export class Indices implements OnInit {
     return p;
   }
 
-  /** Variación porcentual de a hacia b. */
-  cambio(a: number | null, b: number | null): number | null {
-    return a && b !== null ? Math.round(((b - a) / a) * 100) : null;
-  }
-
   clasePaso(p: PasoPlan): string {
     if (p.operacion.startsWith('TABLE ACCESS FULL')) return 'completo';
     if (p.operacion.startsWith('INDEX')) return 'indice';
     return '';
+  }
+
+  redondo(n: number): string {
+    return n >= 10 ? String(Math.round(n)) : numero.format(Math.round(n * 10) / 10);
+  }
+
+  ms(n: number): string {
+    return `${numero.format(n)} ms`;
   }
 
   num(n: number | null | undefined): string {

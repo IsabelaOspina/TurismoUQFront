@@ -1,0 +1,93 @@
+.pagina {
+  background: var(--papel);
+  border-radius: 20px;
+  box-shadow: var(--sombra);
+  padding: 28px;
+  border: 1px solid var(--borde);
+}
+.encabezado h1 { font-size: 28px; color: var(--verde-900); line-height: 1.2; }
+
+.buscar { display: flex; align-items: flex-end; gap: 12px; margin-top: 20px; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; font-weight: 500; color: var(--tinta-suave); }
+label .campo { width: 200px; padding: 9px 12px; font-size: 14px; }
+.buscar .btn { padding: 10px 18px; font-size: 14px; }
+.spinner { width: 14px; height: 14px; }
+
+.politica {
+  margin: 14px 0 16px;
+  padding: 9px 13px;
+  border-radius: 8px;
+  background: #fbefd6;
+  color: var(--cafe-700);
+  font-size: 13px;
+}
+
+.mensaje { border-radius: 8px; padding: 10px 14px; font-size: 14px; margin-bottom: 16px; line-height: 1.5; }
+.mensaje.mal { background: #fbebe7; color: var(--rojo); }
+.mensaje.bien { background: var(--verde-50); color: var(--verde-900); border: 1px solid var(--borde); }
+
+/* ---------- Reserva ---------- */
+.tarjeta { border: 1px solid var(--borde); border-radius: var(--radio); padding: 20px; background: #fff; }
+.cabeza { display: flex; align-items: center; gap: 12px; }
+.cabeza h2 { font-size: 20px; color: var(--verde-900); }
+.tarjeta h3 { font-size: 16px; color: var(--verde-900); margin: 20px 0 10px; }
+
+.estado { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: #eee; color: #555; }
+.estado[data-estado='CONFIRMADA'] { background: var(--verde-100); color: var(--verde-800); }
+.estado[data-estado='PENDIENTE'] { background: #fbefd6; color: var(--cafe-700); }
+.estado[data-estado='CANCELADA'] { background: #fbeae6; color: var(--rojo); }
+
+.datos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 16px 0 0; }
+.datos dt { font-size: 13px; color: var(--tinta-suave); }
+.datos dd { margin: 3px 0 0; font-weight: 600; color: var(--tinta); }
+
+.tabla-envoltura { overflow-x: auto; border: 1px solid var(--borde); border-radius: var(--radio); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th {
+  background: var(--verde-oscuro);
+  color: #fff;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  text-align: left;
+  padding: 11px 12px;
+  white-space: nowrap;
+}
+td { padding: 10px 12px; border-bottom: 1px solid #eef1ef; white-space: nowrap; }
+tbody tr:last-child td { border-bottom: none; }
+.der { text-align: right; font-variant-numeric: tabular-nums; }
+
+.pildora { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+.pildora.bien { background: var(--verde-100); color: var(--verde-800); }
+.pildora.mal { background: #fbeae6; color: var(--rojo); }
+.pildora.neutro { background: #eee; color: #555; }
+
+.vacio { color: var(--tinta-suave); font-size: 14px; margin: 8px 0 0; }
+
+/* ---------- Cancelar ---------- */
+.cierre {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--borde);
+}
+.totales { display: flex; gap: 28px; }
+.totales span { display: block; font-size: 13px; color: var(--tinta-suave); }
+.totales strong { font-size: 20px; font-variant-numeric: tabular-nums; }
+.verde { color: var(--verde-800); }
+.rojo { color: var(--rojo); }
+
+.confirmar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 14px; }
+.btn-peligro { background: var(--rojo); color: #fff; }
+.btn-peligro:hover:not(:disabled) { background: #b9442e; }
+.cierre .btn { padding: 9px 16px; font-size: 14px; }
+
+@media (max-width: 900px) {
+  .pagina { padding: 18px; }
+  .datos { grid-template-columns: 1fr; }
+}

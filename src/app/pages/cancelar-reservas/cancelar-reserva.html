@@ -1,0 +1,104 @@
+<section class="pagina">
+  <header class="encabezado">
+    <h1>Cancelar reserva</h1>
+  </header>
+
+  <form class="buscar" (ngSubmit)="buscar()">
+    <label>
+      <span>Número de reserva</span>
+      <input class="campo" type="number" min="1" name="idReserva" [(ngModel)]="idReserva" />
+    </label>
+    <button type="submit" class="btn btn-suave" [disabled]="procesando() !== ''">
+      @if (procesando() === 'buscar') { <span class="spinner"></span> }
+      Buscar
+    </button>
+  </form>
+
+  <p class="politica">Si la reserva se cancela después de 7 días del pago, no se devuelve el dinero.</p>
+
+  @if (error(); as e) {
+    <div class="mensaje mal" role="alert">
+      <strong>{{ e.titulo }}.</strong> {{ e.mensaje }}
+    </div>
+  }
+
+  @if (resultado(); as r) {
+    <div class="mensaje bien" role="status">
+      <strong>Reserva cancelada.</strong>
+      Se devuelven {{ moneda(r.valorDevuelto) }}.
+      @if (r.valorRetenido > 0) {
+        No se devuelven {{ moneda(r.valorRetenido) }} porque pasaron más de 7 días desde el pago.
+      }
+    </div>
+  }
+
+  @if (detalle(); as d) {
+    <div class="tarjeta">
+      <div class="cabeza">
+        <h2>Reserva N.º {{ d.idReserva }}</h2>
+        <span class="estado" [attr.data-estado]="d.estado">{{ nombreEstado(d.estado) }}</span>
+      </div>
+
+      <dl class="datos">
+        <div><dt>Cliente</dt><dd>{{ d.cliente }}</dd></div>
+        <div><dt>Estadía</dt><dd>{{ fecha(d.fechaEntrada) }} – {{ fecha(d.fechaSalida) }}</dd></div>
+        <div><dt>Valor de la reserva</dt><dd>{{ moneda(d.valorTotal) }}</dd></div>
+      </dl>
+
+      <h3>Pagos</h3>
+      @if (d.pagos.length) {
+        <div class="tabla-envoltura">
+          <table>
+            <thead>
+            <tr>
+              <th scope="col">Pago</th>
+              <th scope="col">Fecha</th>
+              <th scope="col">Método</th>
+              <th scope="col" class="der">Valor</th>
+              <th scope="col">Devolución hasta</th>
+              <th scope="col">{{ cancelable() ? 'Si se cancela' : 'Devolución' }}</th>
+            </tr>
+            </thead>
+            <tbody>
+              @for (p of d.pagos; track p.idPago) {
+                <tr>
+                  <td>N.º {{ p.idPago }}</td>
+                  <td>{{ fecha(p.fecha) }}</td>
+                  <td>{{ nombreMetodo(p.metodoPago) }}</td>
+                  <td class="der">{{ moneda(p.valor) }}</td>
+                  <td>{{ fecha(p.fechaLimite) }}</td>
+                  <td><span [class]="'pildora ' + estadoPago(p).clase">{{ estadoPago(p).texto }}</span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="vacio">La reserva no tiene pagos.</p>
+      }
+
+      @if (cancelable()) {
+        <div class="cierre">
+          <div class="totales">
+            <div><span>Se devuelve</span><strong class="verde">{{ moneda(devolucion().seDevuelve) }}</strong></div>
+            <div><span>No se devuelve</span><strong class="rojo">{{ moneda(devolucion().noSeDevuelve) }}</strong></div>
+          </div>
+          @if (confirmando()) {
+            <div class="confirmar">
+              <span>¿Cancelar la reserva N.º {{ d.idReserva }}? No se puede deshacer.</span>
+              <button type="button" class="btn btn-peligro" (click)="cancelar()" [disabled]="procesando() !== ''">
+                @if (procesando() === 'cancelar') { <span class="spinner"></span> }
+                Sí, cancelar
+              </button>
+              <button type="button" class="btn btn-suave" (click)="confirmando.set(false)">No</button>
+            </div>
+          } @else {
+            <button type="button" class="btn btn-peligro" (click)="confirmando.set(true)">Cancelar reserva</button>
+          }
+        </div>
+      } @else if (!resultado()) {
+        <p class="vacio">Esta reserva está {{ nombreEstado(d.estado).toLowerCase() }}; no se puede cancelar.</p>
+      }
+    </div>
+  }
+</section>

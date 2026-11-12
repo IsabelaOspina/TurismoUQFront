@@ -1,8 +1,81 @@
 <section class="pagina">
   <header class="encabezado">
     <h1>Auditoría de tarifas</h1>
-    <p class="descripcion">Cada vez que se crea, cambia o elimina una tarifa queda registrado quién lo hizo, cuándo y el valor anterior y el nuevo.</p>
   </header>
+
+  <div class="tarifas">
+    <div class="tarifas-cabeza">
+      <h2>Tarifas de la habitación</h2>
+      <label>
+        <span>Habitación (ID)</span>
+        <input class="campo" type="number" min="1" placeholder="Ej. 5" [ngModel]="habTarifas()" (ngModelChange)="habTarifas.set($event); buscarTarifas()" />
+      </label>
+    </div>
+
+    @if (errorTarifa(); as e) {
+      <div class="mensaje mal" role="alert"><strong>{{ e.titulo }}.</strong> {{ e.mensaje }}</div>
+    }
+    @if (aviso()) {
+      <div class="mensaje bien" role="status">{{ aviso() }}</div>
+    }
+
+    @if (buscando()) {
+      <div class="estado-vacio"><span class="spinner"></span> Buscando tarifas…</div>
+    } @else if (tarifas().length) {
+      <div class="tabla-envoltura">
+        <table class="tabla-tarifas">
+          <thead>
+          <tr>
+            <th scope="col">Mes</th>
+            <th scope="col">Temporada</th>
+            <th scope="col" class="der">Precio por noche</th>
+            <th scope="col" class="der">Acciones</th>
+          </tr>
+          </thead>
+          <tbody>
+            @for (t of tarifas(); track t.mes) {
+              <tr [class.sin]="t.precioNoche === null">
+                <td class="fuerte">{{ nombreMes(t.mes) }}</td>
+                <td><span class="temporada" [attr.data-tipo]="t.tipo">{{ t.tipo.toLowerCase() }}</span></td>
+                <td class="der">
+                  @if (editando() === t.mes) {
+                    <input class="campo precio" type="number" min="1" step="1000" [ngModel]="precio()" (ngModelChange)="precio.set($event)" (keyup.enter)="guardar(t)" />
+                  } @else {
+                    {{ t.precioNoche === null ? 'Sin tarifa' : moneda(t.precioNoche) }}
+                  }
+                </td>
+                <td class="der acciones">
+                  @if (editando() === t.mes) {
+                    <button class="btn btn-primario" (click)="guardar(t)" [disabled]="guardando()">Guardar</button>
+                    <button class="btn btn-suave" (click)="cancelar()">Cancelar</button>
+                  } @else if (t.precioNoche === null) {
+                    <button class="btn btn-suave" (click)="abrir(t)" [disabled]="guardando()">Crear</button>
+                  } @else {
+                    <button class="btn btn-suave" (click)="abrir(t)" [disabled]="guardando()">Editar</button>
+                    <button class="btn btn-borrar" (click)="eliminar(t)" [disabled]="guardando()">Eliminar</button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="ajuste">
+        <span>Ajustar toda una temporada</span>
+        <select class="campo" [ngModel]="tipoAjuste()" (ngModelChange)="tipoAjuste.set($event)">
+          @for (t of tipos; track t) { <option [value]="t">Temporada {{ t.toLowerCase() }}</option> }
+        </select>
+        <input class="campo pct" type="number" [ngModel]="porcentaje()" (ngModelChange)="porcentaje.set($event)" />
+        <span>%</span>
+        <button class="btn btn-primario" (click)="ajustar()" [disabled]="guardando()">Aplicar</button>
+      </div>
+    } @else if (!errorTarifa()) {
+      <div class="estado-vacio">Escribe el número de una habitación para ver sus tarifas.</div>
+    }
+  </div>
+
+  <h2 class="titulo-historial">Historial de cambios</h2>
 
   <div class="cifras">
     <div>
@@ -39,6 +112,7 @@
       @if (cargando()) { <span class="spinner"></span> }
       Recargar
     </button>
+    <button class="btn btn-suave" (click)="descargar()" [disabled]="cargando() || filtradas().length === 0">Descargar</button>
   </div>
 
   @if (error(); as e) {
@@ -64,7 +138,7 @@
           <th scope="col">Usuario</th>
           <th scope="col">Operación</th>
           <th scope="col" class="der">Habitación</th>
-          <th scope="col" class="der">Temporada</th>
+          <th scope="col">Mes</th>
           <th scope="col" class="der">Valor anterior</th>
           <th scope="col" class="der">Valor nuevo</th>
           <th scope="col" class="der">Variación</th>
@@ -72,12 +146,12 @@
         </thead>
         <tbody>
           @for (f of visibles(); track f.idAuditoria) {
-            <tr>
+            <tr [class.nueva]="nuevos().includes(f.idAuditoria)">
               <td>{{ fechaHora(f.fechaCambio) }}</td>
               <td class="fuerte">{{ f.usuario }}</td>
               <td><span class="pildora" [attr.data-op]="f.tipoOperacion">{{ nombreOperacion(f.tipoOperacion) }}</span></td>
               <td class="der">{{ f.idHabitacion }}</td>
-              <td class="der">{{ f.idTemporada }}</td>
+              <td>{{ mesHistorial(f.idTemporada) }}</td>
               <td class="der">{{ moneda(f.valorAnterior) }}</td>
               <td class="der">{{ moneda(f.valorNuevo) }}</td>
               <td class="der" [class.sube]="(variacion(f) ?? 0) > 0" [class.baja]="(variacion(f) ?? 0) < 0">{{ variacionTexto(f) }}</td>

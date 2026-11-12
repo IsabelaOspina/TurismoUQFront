@@ -57,6 +57,8 @@ export interface ResultadoReservaPago {
   detalleServicio: string | null;
   /** Valor final de la reserva: estadía + servicio (si se agregó). */
   valorTotal: number;
+  /** Último día para cancelar con devolución del dinero (yyyy-MM-dd). */
+  fechaLimiteDevolucion: string | null;
 }
 
 /** Un servicio adicional del alojamiento de la habitación. */
@@ -186,6 +188,8 @@ const TITULOS: Record<string, string> = {
   'ORA-20401': 'Método de pago no válido',
   'ORA-20402': 'Servicio no válido',
   'ORA-20403': 'Cantidad del servicio no válida',
+  'ORA-20404': 'Pago menor al mínimo',
+  'ORA-20405': 'La reserva no se puede cancelar',
   'ORA-20300': 'Mes no válido',
   'ORA-20301': 'Año no válido',
   'ORA-02291': 'Cliente o habitación inexistente',

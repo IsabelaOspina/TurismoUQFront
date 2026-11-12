@@ -11,6 +11,8 @@ import {
 } from '../../core/plsql';
 
 const dinero = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+/** Igual a PKG_TURISMO_UQ.c_pago_minimo; la base de datos es la que lo valida. */
+const PAGO_MINIMO = 0.3;
 
 /**
  * Reserva, servicio adicional y pago en una sola transacción
@@ -78,6 +80,25 @@ export class ReservaPago {
   totalReserva(): number | null {
     const p = this.precio();
     return p === null ? null : p + this.subtotalServicio();
+  }
+
+  /** Pago mínimo: 30 % del valor de la reserva. */
+  pagoMinimo(): number | null {
+    const t = this.totalReserva();
+    return t === null ? null : Math.ceil(t * PAGO_MINIMO);
+  }
+
+  bajoMinimo(): boolean {
+    const m = this.pagoMinimo();
+    const p = Number(this.datos.valorPago);
+    return m !== null && !!p && p < m;
+  }
+
+  /** "2026-11-18" → "18 de noviembre de 2026" */
+  fechaLarga(valor: string | null): string {
+    if (!valor) return '';
+    const [a, m, d] = valor.split('-').map(Number);
+    return new Date(a, m - 1, d).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
   }
 
   /** Servicio que se envió (para la línea de tiempo de la transacción). */

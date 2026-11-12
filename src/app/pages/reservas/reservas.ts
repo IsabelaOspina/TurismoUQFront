@@ -1,13 +1,14 @@
 import { Component, signal } from '@angular/core';
 import { Reserva, ReservaInicial } from '../reserva/reserva';
 import { ReservaPago } from '../reserva-pago/reserva-pago';
+import { CancelarReserva } from '../cancelar-reservas/cancelar-reserva';
 
-type Pestana = 'nueva' | 'pago' | 'editar';
+type Pestana = 'nueva' | 'pago' | 'editar' | 'cancelar';
 
-/** Sección Reservas: nueva reserva, reserva con pago (transacción) y editar reserva. */
+/** Sección Reservas: nueva, con pago (transacción), editar y cancelar. */
 @Component({
   selector: 'app-reservas',
-  imports: [Reserva, ReservaPago],
+  imports: [Reserva, ReservaPago, CancelarReserva],
   templateUrl: './reservas.html',
   styleUrl: './reservas.css',
 })
@@ -16,6 +17,7 @@ export class Reservas {
     { id: 'nueva', titulo: 'Nueva' },
     { id: 'pago', titulo: 'Con pago' },
     { id: 'editar', titulo: 'Editar' },
+    { id: 'cancelar', titulo: 'Cancelar' },
   ];
 
   pestana = signal<Pestana>('nueva');

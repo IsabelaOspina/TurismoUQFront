@@ -81,7 +81,8 @@
             </select>
           </label>
         </div>
-        <p class="ayuda">Puede ser el total o un anticipo. No puede superar el valor de la reserva.</p>
+        <p class="ayuda">Mínimo el 30 % del valor de la reserva{{ pagoMinimo() !== null ? ' (' + moneda(pagoMinimo()!) + ')' : '' }}. No puede superar el valor total.</p>
+        <p class="aviso-devolucion">Si la reserva se cancela después de 7 días del pago, no se devuelve el dinero.</p>
       </fieldset>
 
       <div class="acciones">
@@ -103,6 +104,12 @@
           <h2>Reserva N.º {{ r.idReserva }} pagada</h2>
           <p>Pago N.º {{ r.idPago }} · {{ nombreMetodo(enviado()!.metodoPago) }} · {{ moneda(enviado()!.valorPago!) }}</p>
         </div>
+        @if (r.fechaLimiteDevolucion) {
+          <div class="aviso-devolucion destacado" role="note">
+            Puede cancelar con devolución del dinero hasta el <strong>{{ fechaLarga(r.fechaLimiteDevolucion) }}</strong>.
+            Después de esa fecha, el dinero no se devuelve.
+          </div>
+        }
       } @else {
         <h2>Resumen</h2>
       }
@@ -140,7 +147,15 @@
       </div>
 
       <dl class="pago">
-        <div><dt>Pago</dt><dd>{{ datos.valorPago ? moneda(datos.valorPago) : '—' }}</dd></div>
+        <div><dt>Pago mínimo (30 %)</dt><dd>{{ pagoMinimo() !== null ? moneda(pagoMinimo()!) : '—' }}</dd></div>
+        <div>
+          <dt>Pago</dt>
+          @if (!resultado() && bajoMinimo()) {
+            <dd class="excede">{{ moneda(datos.valorPago!) }} · menor al mínimo</dd>
+          } @else {
+            <dd>{{ datos.valorPago ? moneda(datos.valorPago) : '—' }}</dd>
+          }
+        </div>
         <div>
           <dt>Saldo pendiente</dt>
           @if (saldo() !== null && saldo()! < 0) {
@@ -197,7 +212,7 @@
                 <li class="revertido">
                   <span class="marca"></span>
                   <div>
-                    <code>ROLLBACK TO sp_inicio</code>
+                    Transacción cancelada
                     <small>No se guardó la reserva, ni el servicio, ni el pago.</small>
                   </div>
                 </li>

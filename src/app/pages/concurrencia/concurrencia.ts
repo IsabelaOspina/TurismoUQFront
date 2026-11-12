@@ -4,20 +4,20 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { forkJoin, switchMap, tap, timer } from 'rxjs';
 import { PlsqlService, PruebaConcurrencia, ReservaCruzada, ResultadoSesion, leerErrorPlsql } from '../../core/plsql';
 
-type Modo = 'sin' | 'con';
-
-interface Sesion {
-  nombre: 'A' | 'B';
+interface Cliente {
+  letra: 'A' | 'B';
   idCliente: number;
   resultado: ResultadoSesion | null;
 }
 
-/** La sesión B arranca un poco después para que la A siempre tome la habitación primero. */
+/** El cliente B llega un poco después para que A siempre tome la habitación primero. */
 const RETRASO_B_MS = 300;
+/** Tiempo que cada reserva tarda en confirmarse, para que las dos coincidan. */
+const SEGUNDOS_PROCESO = 5;
 
 /**
- * Experimento de concurrencia: dos sesiones intentan reservar la misma habitación
- * en las mismas fechas al mismo tiempo, sin bloqueo y con SELECT ... FOR UPDATE.
+ * Dos clientes reservan la misma habitación al mismo tiempo.
+ * Sin protección: sp_reservar_sin_bloqueo. Con protección: sp_reservar_con_bloqueo (SELECT ... FOR UPDATE).
  */
 @Component({
   selector: 'app-concurrencia',
@@ -31,63 +31,63 @@ export class Concurrencia implements OnDestroy {
   idHabitacion = 5;
   fechaIn = '2027-04-10';
   fechaOut = '2027-04-13';
-  segundos = 5;
+  proteccion = signal(true);
 
-  modo = signal<Modo | null>(null);
   corriendo = signal(false);
-  sesiones = signal<Sesion[]>([]);
+  /** Protección con la que se hizo la última simulación. */
+  conProteccion = signal(true);
+  clientes = signal<Cliente[]>([
+    { letra: 'A', idCliente: 1, resultado: null },
+    { letra: 'B', idCliente: 2, resultado: null },
+  ]);
   reservas = signal<ReservaCruzada[] | null>(null);
   error = signal<string | null>(null);
-  /** Hora actual, para mostrar los segundos que lleva cada sesión mientras corre. */
+  verDetalles = signal(false);
   ahora = signal(Date.now());
-  private inicioPrueba = 0;
+  private inicio = 0;
   private reloj?: ReturnType<typeof setInterval>;
 
-  /** Escala de la línea de tiempo: del inicio de A al final de la última sesión. */
+  /** Escala de la línea de tiempo (detalles técnicos). */
   escala = computed(() => {
-    const res = this.sesiones().map((s) => s.resultado).filter((r): r is ResultadoSesion => !!r);
+    const res = this.clientes().map((c) => c.resultado).filter((r): r is ResultadoSesion => !!r);
     if (res.length < 2) return null;
     const inicio = Math.min(...res.map((r) => r.inicioMs));
     const fin = Math.max(...res.map((r) => r.finMs));
     return { inicio, total: Math.max(fin - inicio, 1) };
   });
 
-  ejecutar(modo: Modo): void {
+  simular(): void {
     if (!this.idHabitacion || !this.fechaIn || !this.fechaOut) {
       this.error.set('Escribe la habitación y las dos fechas.');
       return;
     }
-    this.modo.set(modo);
+    const con = this.proteccion();
+    this.conProteccion.set(con);
     this.corriendo.set(true);
     this.reservas.set(null);
     this.error.set(null);
-    this.sesiones.set([
-      { nombre: 'A', idCliente: 1, resultado: null },
-      { nombre: 'B', idCliente: 2, resultado: null },
-    ]);
+    this.clientes.update((l) => l.map((c) => ({ ...c, resultado: null })));
 
     const datos = (idCliente: number): PruebaConcurrencia => ({
-      conBloqueo: modo === 'con',
+      conBloqueo: con,
       idCliente,
       idHabitacion: this.idHabitacion,
       fechaIn: this.fechaIn,
       fechaOut: this.fechaOut,
       numeroPersonas: 1,
-      segundosEspera: this.segundos,
+      segundosEspera: SEGUNDOS_PROCESO,
     });
 
-    // 1. Borrar las reservas de pruebas anteriores con esta habitación y fechas
+    // Borra la simulación anterior, lanza los dos clientes y cuenta las reservas que quedaron
     this.api.limpiarConcurrencia(this.idHabitacion, this.fechaIn, this.fechaOut).pipe(
-      // 2. Lanzar las dos sesiones casi al mismo tiempo
       switchMap(() => {
-        this.inicioPrueba = Date.now();
+        this.inicio = Date.now();
         this.iniciarReloj();
         return forkJoin([
           this.lanzar('A', datos(1)),
           timer(RETRASO_B_MS).pipe(switchMap(() => this.lanzar('B', datos(2)))),
         ]);
       }),
-      // 3. Ver cuántas reservas quedaron ocupando la habitación
       switchMap(() => this.api.reservasCruzadas(this.idHabitacion, this.fechaIn, this.fechaOut)),
     ).subscribe({
       next: (lista) => {
@@ -102,33 +102,42 @@ export class Concurrencia implements OnDestroy {
     });
   }
 
-  /** Segundos transcurridos de una sesión (en vivo mientras corre). */
-  segundosSesion(s: Sesion): string {
-    if (s.resultado) return this.seg(s.resultado.finMs - s.resultado.inicioMs);
-    const desde = this.inicioPrueba + (s.nombre === 'B' ? RETRASO_B_MS : 0);
-    return this.seg(Math.max(0, this.ahora() - desde));
+  /** Texto y estilo de la tarjeta de cada cliente. */
+  estado(c: Cliente): { texto: string; detalle: string; clase: string } {
+    const r = c.resultado;
+    if (!r) {
+      if (!this.corriendo()) return { texto: 'Listo para reservar', detalle: '', clase: '' };
+      return { texto: 'Reservando…', detalle: this.seg(this.transcurrido(c)), clase: 'curso' };
+    }
+    if (r.ok) return { texto: 'Reserva confirmada', detalle: `N.º ${r.idReserva}`, clase: 'ok' };
+    const espera = this.esperaBloqueo(c);
+    return {
+      texto: 'Habitación no disponible',
+      detalle: espera > 0 ? `Esperó ${this.seg(espera)} su turno` : 'Otro cliente la reservó primero',
+      clase: 'rechazo',
+    };
   }
 
-  /**
-   * Tiempo que la sesión estuvo detenida esperando el bloqueo.
-   * Si fue rechazada, Oracle no alcanzó a devolverlo: es lo que tardó la otra sesión en confirmar.
-   */
-  esperaBloqueo(s: Sesion): number {
-    const r = s.resultado;
-    if (!r || this.modo() !== 'con') return 0;
+  private transcurrido(c: Cliente): number {
+    return Math.max(0, this.ahora() - this.inicio - (c.letra === 'B' ? RETRASO_B_MS : 0));
+  }
+
+  /** Tiempo que el cliente estuvo esperando a que el otro terminara (solo con protección). */
+  esperaBloqueo(c: Cliente): number {
+    const r = c.resultado;
+    if (!r || !this.conProteccion()) return 0;
     if (r.ok) return r.msBloqueo ?? 0;
-    const otra = this.sesiones().find((x) => x.nombre !== s.nombre)?.resultado;
+    const otra = this.clientes().find((x) => x.letra !== c.letra)?.resultado;
     return otra ? Math.min(r.finMs - r.inicioMs, Math.max(0, otra.finMs - r.inicioMs)) : 0;
   }
 
-  /** Posición y tamaño (en %) de los tramos de la barra de una sesión. */
-  tramos(s: Sesion): { desplazamiento: number; espera: number; trabajo: number } | null {
+  tramos(c: Cliente): { desde: number; espera: number; trabajo: number } | null {
     const e = this.escala();
-    const r = s.resultado;
+    const r = c.resultado;
     if (!e || !r) return null;
-    const espera = this.esperaBloqueo(s);
+    const espera = this.esperaBloqueo(c);
     return {
-      desplazamiento: ((r.inicioMs - e.inicio) / e.total) * 100,
+      desde: ((r.inicioMs - e.inicio) / e.total) * 100,
       espera: (espera / e.total) * 100,
       trabajo: ((r.finMs - r.inicioMs - espera) / e.total) * 100,
     };
@@ -142,11 +151,9 @@ export class Concurrencia implements OnDestroy {
     clearInterval(this.reloj);
   }
 
-  private lanzar(nombre: 'A' | 'B', datos: PruebaConcurrencia) {
+  private lanzar(letra: 'A' | 'B', datos: PruebaConcurrencia) {
     return this.api.reservaConcurrente(datos).pipe(
-      tap((r) => {
-        this.sesiones.update((lista) => lista.map((s) => (s.nombre === nombre ? { ...s, resultado: r } : s)));
-      }),
+      tap((r) => this.clientes.update((l) => l.map((c) => (c.letra === letra ? { ...c, resultado: r } : c)))),
     );
   }
 

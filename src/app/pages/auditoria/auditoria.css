@@ -9,6 +9,52 @@
 .encabezado h1 { font-size: 28px; color: var(--verde-900); line-height: 1.2; }
 .descripcion { margin: 6px 0 0; color: var(--tinta-suave); max-width: 64ch; line-height: 1.5; }
 
+/* ---------- Tarifas de la habitación ---------- */
+.tarifas {
+  margin-top: 22px;
+  padding: 18px 20px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: #fff;
+}
+.tarifas-cabeza { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; margin-bottom: 14px; }
+.tarifas h2, .titulo-historial { font-size: 17px; color: var(--verde-900); margin: 0; }
+.titulo-historial { margin: 26px 0 0; }
+.tarifas .mensaje { margin: 0 0 12px; }
+.tarifas .estado-vacio { padding: 28px 20px; }
+
+.tabla-tarifas td { padding: 8px 12px; }
+.tabla-tarifas tr.sin td { color: var(--tinta-suave); font-style: italic; background: #fafafa; }
+.tabla-tarifas .acciones { display: flex; justify-content: flex-end; gap: 6px; }
+.tabla-tarifas .btn { padding: 5px 12px; font-size: 13px; font-style: normal; }
+.campo.precio { width: 130px; padding: 5px 9px; font-size: 14px; text-align: right; }
+.btn-borrar { background: #fbeae6; color: var(--rojo); }
+.btn-borrar:hover:not(:disabled) { background: #f6d9d2; }
+
+.temporada { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; text-transform: capitalize; }
+.temporada[data-tipo='ALTA'] { background: #fbefd6; color: var(--cafe-700); }
+.temporada[data-tipo='MEDIA'] { background: var(--verde-100); color: var(--verde-800); }
+.temporada[data-tipo='BAJA'] { background: #e8eef6; color: #3d5a80; }
+
+.ajuste {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--verde-50);
+  border-radius: var(--radio);
+  font-size: 14px;
+  color: var(--verde-900);
+}
+.ajuste > span:first-child { font-weight: 600; margin-right: 4px; }
+.ajuste select.campo { width: 170px; padding: 6px 9px; font-size: 14px; }
+.ajuste .campo.pct { width: 70px; padding: 6px 9px; font-size: 14px; text-align: right; }
+.ajuste .btn { padding: 6px 14px; font-size: 13px; }
+.mensaje.bien { background: var(--verde-50); color: var(--verde-900); }
+tbody tr.nueva td { background-color: #fbefd6; }
+
 /* ---------- Cifras ---------- */
 .cifras {
   display: grid;

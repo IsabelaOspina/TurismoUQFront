@@ -60,3 +60,15 @@ li.fallo small { font-weight: 400; color: #6f2a1d; }
 dd.excede { color: var(--cereza); }
 dd.tachado { text-decoration: line-through; color: #9aa59f; }
 dl.pago { margin-top: 4px; }
+
+/* Aviso de la política de devolución */
+.aviso-devolucion {
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #fbefd6;
+  color: var(--cafe-700);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.aviso-devolucion.destacado { margin: 14px 0 4px; font-size: 14px; text-align: left; }

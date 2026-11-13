@@ -13,7 +13,7 @@ const TEXTOS: Record<number, { nombre: string; descripcion: string }> = {
   1: { nombre: 'Reservas que llegan en un día', descripcion: 'Cuántas reservas llegan en una fecha, por estado.' },
   2: { nombre: 'Buscar cliente por correo', descripcion: 'Encuentra al cliente aunque el correo se escriba con otras mayúsculas.' },
   3: { nombre: 'Pagos recibidos en un día', descripcion: 'Cuántos pagos entraron en una fecha y cuánto suman.' },
-  4: { nombre: 'Reservas finalizadas', descripcion: 'Total de reservas terminadas y sus ingresos.' },
+  4: { nombre: 'Pagos en efectivo', descripcion: 'Cuántos pagos se hicieron en efectivo y cuánto suman.' },
 };
 
 const numero = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 2 });
@@ -109,8 +109,15 @@ export class Indices implements OnInit {
       { titulo: 'Sin índice', m: r.sinIndice },
       { titulo: 'Con índice', m: r.conIndice },
     ];
-    if (r.forzado) p.push({ titulo: 'Forzando el índice', m: r.forzado });
+    if (this.mostrarForzado(r)) p.push({ titulo: 'Forzando el índice', m: r.forzado! });
     return p;
+  }
+
+  /** El plan forzado solo se muestra si es distinto del plan con índice. */
+  mostrarForzado(r: ComparacionIndice): boolean {
+    if (!r.forzado) return false;
+    const pasos = (m: MedicionIndice) => m.plan.map((p) => `${p.operacion}|${p.objeto ?? ''}`).join(';');
+    return pasos(r.forzado) !== pasos(r.conIndice) || r.forzado.costo !== r.conIndice.costo;
   }
 
   clasePaso(p: PasoPlan): string {

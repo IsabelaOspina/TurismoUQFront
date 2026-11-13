@@ -69,7 +69,7 @@
                 <p><strong>Índice {{ c.tipo.toLowerCase() }}.</strong> {{ c.explicacion }}</p>
                 <p class="costo">
                   Costo estimado por Oracle: {{ num(r.sinIndice.costo) }} → {{ num(r.conIndice.costo) }}
-                  @if (r.forzado) { · forzando el índice: {{ num(r.forzado.costo) }} }
+                  @if (mostrarForzado(r)) { · forzando el índice: {{ num(r.forzado!.costo) }} }
                 </p>
 
                 <div class="planes">

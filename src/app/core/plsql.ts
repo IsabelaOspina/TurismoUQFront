@@ -136,16 +136,6 @@ export interface ComparacionIndice {
   indiceQueda: boolean;
 }
 
-/** Una tarifa de una habitación en una temporada (un mes). */
-export interface FilaTarifa {
-  idHabitacion: number;
-  idTemporada: number;
-  temporada: string;
-  mes: number;
-  tipo: 'ALTA' | 'MEDIA' | 'BAJA' | string;
-  precioNoche: number;
-}
-
 /** Un registro de AUDITORIA_TARIFA (lo llena el disparador trg_auditoria_tarifa). */
 export interface FilaAuditoria {
   idAuditoria: number;
@@ -169,7 +159,6 @@ const TITULOS: Record<string, string> = {
   'ORA-20001': 'Faltan las fechas',
   'ORA-20002': 'Fechas no válidas',
   'ORA-20003': 'Sin tarifa para esas fechas',
-  'ORA-20004': 'Tarifas en conflicto',
   'ORA-20100': 'Fechas no válidas',
   'ORA-20101': 'Se supera la capacidad',
   'ORA-20102': 'Habitación no disponible',
@@ -283,21 +272,6 @@ export class PlsqlService {
   /** Mide la consulta sin el índice, lo crea y la vuelve a medir. */
   compararIndice(id: number): Observable<ComparacionIndice> {
     return this.http.post<ComparacionIndice>(`${API_URL}/indices/${id}/comparar`, {});
-  }
-
-  /** Las 12 tarifas de una habitación. */
-  listarTarifas(idHabitacion: number): Observable<FilaTarifa[]> {
-    return this.http.get<FilaTarifa[]>(`${API_URL}/tarifas`, { params: new HttpParams().set('idHabitacion', idHabitacion) });
-  }
-
-  /** Cambia el precio de una tarifa (UPDATE de una fila; queda en la auditoría). */
-  actualizarTarifa(idHabitacion: number, idTemporada: number, precioNoche: number, usuario: string): Observable<unknown> {
-    return this.http.put(`${API_URL}/tarifas/${idHabitacion}/${idTemporada}`, { precioNoche, usuario });
-  }
-
-  /** Sube o baja un porcentaje todas las tarifas de la habitación con una sola sentencia UPDATE. */
-  ajustarTarifas(idHabitacion: number, porcentaje: number, usuario: string): Observable<{ tarifasActualizadas: number }> {
-    return this.http.put<{ tarifasActualizadas: number }>(`${API_URL}/tarifas/${idHabitacion}/ajuste`, { porcentaje, usuario });
   }
 
   /** Historial de AUDITORIA_TARIFA, del cambio más reciente al más antiguo. */

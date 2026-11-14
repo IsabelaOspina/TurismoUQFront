@@ -11,14 +11,6 @@
 .encabezado .btn { padding: 10px 26px; }
 .spinner { width: 14px; height: 14px; }
 
-.resumen { display: flex; gap: 12px; margin-top: 20px; }
-.resumen > div {
-  display: flex; align-items: baseline; gap: 8px;
-  padding: 10px 16px; border-radius: 12px; background: var(--verde-50); border: 1px solid var(--borde);
-}
-.resumen strong { font-family: 'Fraunces', Georgia, serif; font-size: 22px; color: var(--verde-900); }
-.resumen span { font-size: 14px; color: var(--tinta-suave); }
-
 .mensaje { border-radius: 8px; padding: 10px 14px; font-size: 14px; margin-top: 16px; }
 .mensaje.mal { background: #fbebe7; color: var(--rojo); }
 .vacio { display: flex; align-items: center; gap: 10px; padding: 40px; color: var(--tinta-suave); justify-content: center; }
@@ -27,7 +19,6 @@
 .tarjetas { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
 .tarjeta { padding: 18px 20px; border: 1px solid var(--borde); border-radius: var(--radio); background: #fff; }
 .tarjeta.abierta { grid-column: 1 / -1; }
-.cabeza { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .cabeza h2 { font-size: 17px; color: var(--verde-900); }
 .cabeza p { margin: 4px 0 0; font-size: 13px; color: var(--tinta-suave); }
 
@@ -38,6 +29,12 @@
   background: var(--verde-100); color: var(--verde-800);
 }
 .insignia.gris { background: #eef0ef; color: #6b746f; }
+
+.dato { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; }
+.dato label { font-size: 13px; font-weight: 500; color: var(--tinta-suave); margin-right: 2px; }
+.dato .campo { flex: 1; min-width: 150px; max-width: 260px; padding: 7px 10px; font-size: 14px; }
+.dato .btn { padding: 8px 18px; font-size: 13px; }
+.dato .spinner { width: 12px; height: 12px; }
 
 .nota { display: flex; align-items: center; gap: 8px; margin: 14px 0 0; font-size: 13px; color: var(--tinta-suave); }
 .nota.mal { color: var(--rojo); }
@@ -52,6 +49,13 @@
 .relleno.rapido { background: var(--verde-600); }
 .relleno.rapido.igual { background: #b9c4be; }
 
+.resultado { width: 100%; margin-top: 14px; border-collapse: collapse; font-size: 13px; border: 1px solid var(--borde); }
+.resultado th { background: var(--verde-50); color: var(--verde-900); font-weight: 600; text-align: left; padding: 7px 10px; }
+.resultado td { padding: 7px 10px; border-top: 1px solid #eef1ef; }
+.resultado th, .resultado td { white-space: nowrap; }
+.resultado .num { text-align: right; font-variant-numeric: tabular-nums; }
+.resultado .sin { color: var(--tinta-suave); font-style: italic; white-space: normal; }
+
 .enlace {
   margin-top: 14px;
   border: none; background: none; padding: 0;
@@ -60,12 +64,11 @@
 }
 
 /* ---------- Detalles técnicos ---------- */
-.detalles { margin-top: 12px; padding-top: 14px; border-top: 1px dashed var(--borde); font-size: 14px; line-height: 1.55; }
+.detalles { margin-top: 14px; padding-top: 16px; border-top: 1px dashed var(--borde); font-size: 14px; line-height: 1.55; }
 .detalles p { margin: 0 0 8px; }
 .costo { color: var(--tinta-suave); font-size: 13px; }
 .planes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 10px; }
 .plan { border: 1px solid var(--borde); border-radius: 10px; padding: 10px 12px; }
-.plan h3 { font-size: 14px; color: var(--verde-900); margin-bottom: 6px; }
 .plan ol { list-style: none; margin: 0; padding: 0; font-family: ui-monospace, monospace; font-size: 12px; }
 .plan li { padding: 3px 0; border-left: 3px solid transparent; }
 .plan li span { color: var(--tinta-suave); }
@@ -84,3 +87,8 @@ pre {
   .pagina { padding: 18px; }
   .tarjetas { grid-template-columns: 1fr; }
 }
+
+.cabeza-detalle { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 4px; }
+.cabeza-detalle h3 { font-size: 15px; color: var(--verde-900); margin: 0; }
+.pie { font-size: 12px; color: var(--tinta-suave); margin: 8px 0 14px !important; }
+.plan h4 { font-size: 14px; color: var(--verde-900); margin: 0 0 6px; }

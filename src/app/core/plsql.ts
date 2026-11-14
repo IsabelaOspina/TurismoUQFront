@@ -109,6 +109,18 @@ export interface CasoIndice {
   ayuda: boolean;
   explicacion: string;
   existe: boolean;
+  /** Dato que escribe el usuario para la consulta. */
+  parametro: 'fecha' | 'correo' | 'metodo';
+  etiqueta: string;
+  porDefecto: string;
+  opciones: string[] | null;
+}
+
+/** Resultado de ejecutar la consulta de un caso de índices. */
+export interface ResultadoConsulta {
+  consulta: string;
+  datos: { columnas: string[]; filas: (string | number | null)[][] };
+  ms: number;
 }
 
 /** Un paso del plan de ejecución (una fila de PLAN_TABLE). */
@@ -134,6 +146,10 @@ export interface ComparacionIndice {
   conIndice: MedicionIndice;
   forzado?: MedicionIndice;
   indiceQueda: boolean;
+  /** Consulta ejecutada, con el dato escrito. */
+  consulta: string;
+  /** Lo que devuelve la consulta (hasta 10 filas). */
+  datos?: { columnas: string[]; filas: (string | number | null)[][] };
 }
 
 /** Un registro de AUDITORIA_TARIFA (lo llena el disparador trg_auditoria_tarifa). */
@@ -270,8 +286,13 @@ export class PlsqlService {
   }
 
   /** Mide la consulta sin el índice, lo crea y la vuelve a medir. */
-  compararIndice(id: number): Observable<ComparacionIndice> {
-    return this.http.post<ComparacionIndice>(`${API_URL}/indices/${id}/comparar`, {});
+  /** Ejecuta la consulta del caso con el dato escrito. */
+  consultarIndice(id: number, valor: string): Observable<ResultadoConsulta> {
+    return this.http.post<ResultadoConsulta>(`${API_URL}/indices/${id}/consultar`, { valor });
+  }
+
+  compararIndice(id: number, valor: string): Observable<ComparacionIndice> {
+    return this.http.post<ComparacionIndice>(`${API_URL}/indices/${id}/comparar`, { valor });
   }
 
   /** Historial de AUDITORIA_TARIFA, del cambio más reciente al más antiguo. */

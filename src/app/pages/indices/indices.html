@@ -1,23 +1,13 @@
 <section class="pagina">
   <header class="encabezado">
     <div>
-      <h1>Rendimiento de consultas</h1>
-      <p class="descripcion">Velocidad de las búsquedas más usadas, antes y después de agregar índices.</p>
+      <h1>Consultas frecuentes</h1>
+      <p class="descripcion">Escribe el dato y consulta. En los detalles técnicos puedes ver cómo cambia la velocidad con y sin índice.</p>
     </div>
-    <button class="btn btn-primario" (click)="medir()" [disabled]="cargando() || hayProcesando() || !casos().length">
-      @if (hayProcesando()) { <span class="spinner"></span> }
-      {{ resumen() ? 'Medir de nuevo' : 'Medir' }}
+    <button class="btn btn-primario" (click)="consultarTodas()" [disabled]="cargando() || ocupado() || !casos().length">
+      Consultar todas
     </button>
   </header>
-
-  @if (resumen(); as r) {
-    <div class="resumen">
-      <div><strong>{{ r.mejoradas }} de {{ r.total }}</strong><span>consultas más rápidas</span></div>
-      @if (r.promedio) {
-        <div><strong>{{ redondo(r.promedio) }}×</strong><span>mejora promedio</span></div>
-      }
-    </div>
-  }
 
   @if (errorCarga(); as e) {
     <div class="mensaje mal" role="alert">{{ e }}</div>
@@ -31,69 +21,113 @@
         @let est = estado(c.id);
         <article class="tarjeta" [class.abierta]="abierto() === c.id">
           <div class="cabeza">
-            <div>
-              <h2>{{ texto(c).nombre }}</h2>
-              <p>{{ texto(c).descripcion }}</p>
-            </div>
-            @if (est.resultado; as r) {
-              <span class="insignia" [class.gris]="mejora(c, r) === 'Sin mejora'">{{ mejora(c, r) }}</span>
-            }
+            <h2>{{ texto(c).nombre }}</h2>
+            <p>{{ texto(c).descripcion }}</p>
           </div>
 
-          @if (est.procesando) {
-            <p class="nota"><span class="spinner"></span> Midiendo…</p>
-          } @else if (est.error) {
-            <p class="nota mal">{{ est.error }}</p>
-          } @else if (est.resultado; as r) {
-            <div class="barras">
-              <div class="barra">
-                <span>Sin índice</span>
-                <div class="pista"><div class="relleno lento" [style.width.%]="ancho(r, r.sinIndice.msPromedio)"></div></div>
-                <strong>{{ ms(r.sinIndice.msPromedio) }}</strong>
-              </div>
-              <div class="barra">
-                <span>Con índice</span>
-                <div class="pista"><div class="relleno rapido" [class.igual]="mejora(c, r) === 'Sin mejora'" [style.width.%]="ancho(r, r.conIndice.msPromedio)"></div></div>
-                <strong>{{ ms(r.conIndice.msPromedio) }}</strong>
-              </div>
-            </div>
-            @if (!c.ayuda) {
-              <p class="nota">El índice no ayuda en esta consulta, así que se eliminó.</p>
+          <form class="dato" (ngSubmit)="consultar(c)">
+            <label [attr.for]="'dato' + c.id">{{ c.etiqueta }}</label>
+            @switch (c.parametro) {
+              @case ('fecha') {
+                <input class="campo" type="date" [id]="'dato' + c.id" [name]="'dato' + c.id" [(ngModel)]="valores[c.id]" required />
+              }
+              @case ('metodo') {
+                <select class="campo" [id]="'dato' + c.id" [name]="'dato' + c.id" [(ngModel)]="valores[c.id]">
+                  @for (m of c.opciones ?? []; track m) { <option [value]="m">{{ nombreMetodo(m) }}</option> }
+                </select>
+              }
+              @default {
+                <input class="campo" type="email" [id]="'dato' + c.id" [name]="'dato' + c.id" [(ngModel)]="valores[c.id]" required />
+              }
             }
-            <button type="button" class="enlace" (click)="alternar(c.id)">
+            <button type="submit" class="btn btn-primario" [disabled]="est.consultando || est.midiendo || !valores[c.id]">
+              @if (est.consultando) { <span class="spinner"></span> }
+              Consultar
+            </button>
+          </form>
+
+          @if (est.error) {
+            <p class="nota mal">{{ est.error }}</p>
+          } @else if (est.consulta; as q) {
+            <table class="resultado">
+              <thead>
+              <tr>
+                @for (col of q.datos.columnas; track $index) {
+                  <th [class.num]="esNumero(q.datos, $index)">{{ columna(col) }}</th>
+                }
+              </tr>
+              </thead>
+              <tbody>
+                @for (fila of q.datos.filas; track $index) {
+                  <tr>
+                    @for (v of fila; track $index) {
+                      <td [class.num]="esNumero(q.datos, $index)">{{ formato(v, q.datos.columnas[$index]) }}</td>
+                    }
+                  </tr>
+                } @empty {
+                  <tr><td [attr.colspan]="q.datos.columnas.length" class="sin">Sin resultados para ese dato.</td></tr>
+                }
+              </tbody>
+            </table>
+
+            <button type="button" class="enlace" (click)="alternar(c)">
               {{ abierto() === c.id ? 'Ocultar detalles técnicos' : 'Ver detalles técnicos' }}
             </button>
 
             @if (abierto() === c.id) {
               <div class="detalles">
-                <p><strong>Índice {{ c.tipo.toLowerCase() }}.</strong> {{ c.explicacion }}</p>
-                <p class="costo">
-                  Costo estimado por Oracle: {{ num(r.sinIndice.costo) }} → {{ num(r.conIndice.costo) }}
-                  @if (mostrarForzado(r)) { · forzando el índice: {{ num(r.forzado!.costo) }} }
-                </p>
-
-                <div class="planes">
-                  @for (p of planes(r); track p.titulo) {
-                    <div class="plan">
-                      <h3>{{ p.titulo }}</h3>
-                      <ol>
-                        @for (paso of p.m.plan; track $index) {
-                          <li [attr.data-tipo]="clasePaso(paso)" [style.padding-left.px]="10 + paso.nivel * 12">
-                            {{ paso.operacion }}@if (paso.objeto) { <span>&nbsp;· {{ paso.objeto }}</span> }
-                          </li>
-                        }
-                      </ol>
+                @if (est.midiendo) {
+                  <p class="nota"><span class="spinner"></span> Comparando sin y con índice…</p>
+                } @else if (est.errorComparacion) {
+                  <p class="nota mal">{{ est.errorComparacion }}</p>
+                } @else if (est.comparacion; as r) {
+                  <div class="cabeza-detalle">
+                    <h3>Velocidad sin y con índice</h3>
+                    <span class="insignia" [class.gris]="mejora(c, r) === 'Sin mejora'">{{ mejora(c, r) }}</span>
+                  </div>
+                  <div class="barras">
+                    <div class="barra">
+                      <span>Sin índice</span>
+                      <div class="pista"><div class="relleno lento" [style.width.%]="ancho(r, r.sinIndice.msPromedio)"></div></div>
+                      <strong>{{ ms(r.sinIndice.msPromedio) }}</strong>
                     </div>
-                  }
-                </div>
-                <p class="leyenda"><i class="completo"></i>Lee la tabla completa <i class="indice"></i>Usa el índice</p>
+                    <div class="barra">
+                      <span>Con índice</span>
+                      <div class="pista"><div class="relleno rapido" [class.igual]="mejora(c, r) === 'Sin mejora'" [style.width.%]="ancho(r, r.conIndice.msPromedio)"></div></div>
+                      <strong>{{ ms(r.conIndice.msPromedio) }}</strong>
+                    </div>
+                  </div>
+                  <p class="pie">Promedio de {{ r.conIndice.repeticiones }} ejecuciones.
+                    @if (!c.ayuda) { El índice no ayuda en esta consulta, así que se eliminó. }
+                  </p>
 
-                <pre>{{ c.consulta }}</pre>
-                <pre>{{ c.crear }};</pre>
+                  <p><strong>Índice {{ c.tipo.toLowerCase() }}.</strong> {{ c.explicacion }}</p>
+                  <p class="costo">
+                    Costo estimado por Oracle: {{ num(r.sinIndice.costo) }} → {{ num(r.conIndice.costo) }}
+                    @if (mostrarForzado(r)) { · forzando el índice: {{ num(r.forzado!.costo) }} }
+                  </p>
+
+                  <div class="planes">
+                    @for (p of planes(r); track p.titulo) {
+                      <div class="plan">
+                        <h4>{{ p.titulo }}</h4>
+                        <ol>
+                          @for (paso of p.m.plan; track $index) {
+                            <li [attr.data-tipo]="clasePaso(paso)" [style.padding-left.px]="10 + paso.nivel * 12">
+                              {{ paso.operacion }}@if (paso.objeto) { <span>&nbsp;· {{ paso.objeto }}</span> }
+                            </li>
+                          }
+                        </ol>
+                      </div>
+                    }
+                  </div>
+                  <p class="leyenda"><i class="completo"></i>Lee la tabla completa <i class="indice"></i>Usa el índice</p>
+
+                  <pre>{{ r.consulta }}</pre>
+                  <pre>{{ c.crear }};</pre>
+                }
               </div>
             }
-          } @else {
-            <p class="nota">Sin medir.</p>
           }
         </article>
       }

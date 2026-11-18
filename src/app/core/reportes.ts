@@ -134,6 +134,32 @@ export const REPORTES: Reporte[] = [
       { campo: 'totalResenas', titulo: 'Reseñas', tipo: 'numero' },
     ],
   },
+  {
+    id: 'habitacion-temporada-alta',
+    numero: 9,
+    titulo: 'Habitación con más reservas en temporada alta',
+    descripcion: 'La habitación con más reservas confirmadas o finalizadas en meses de temporada alta (si hay empate, salen todas).',
+    endpoint: 'habitacion-temporada-alta',
+    columnas: [
+      { campo: 'habitacion', titulo: 'Habitación', tipo: 'texto' },
+      { campo: 'alojamiento', titulo: 'Alojamiento', tipo: 'texto' },
+      { campo: 'municipio', titulo: 'Municipio', tipo: 'texto' },
+      { campo: 'reservas', titulo: 'Reservas', tipo: 'numero' },
+    ],
+  },
+  {
+    id: 'clientes-municipio',
+    numero: 10,
+    titulo: 'Cliente con más reservas por municipio',
+    descripcion: 'En cada municipio, el cliente con más reservas confirmadas o finalizadas (si hay empate, salen todos).',
+    endpoint: 'clientes-municipio',
+    columnas: [
+      { campo: 'municipio', titulo: 'Municipio', tipo: 'texto' },
+      { campo: 'cliente', titulo: 'Cliente', tipo: 'texto' },
+      { campo: 'cedula', titulo: 'Cédula', tipo: 'texto' },
+      { campo: 'reservas', titulo: 'Reservas', tipo: 'numero' },
+    ],
+  },
 ];
 
 @Injectable({ providedIn: 'root' })
